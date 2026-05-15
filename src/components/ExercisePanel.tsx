@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Exercise } from '../data/modules';
-import { executePython, validateCode } from '../utils/pythonRunner';
+import { executePythonAsync, validateCode } from '../utils/pythonRunner';
 import { RotateCcw, CheckCircle, XCircle, Lightbulb, Eye, EyeOff } from 'lucide-react';
 import CodeEditor from './CodeEditor';
 
@@ -23,42 +23,35 @@ export default function ExercisePanel({ exercise, onComplete }: ExercisePanelPro
   } | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
 
-  const handleRun = (codeFromEditor?: string) => {
+  const handleRun = async (codeFromEditor?: string) => {
     const codeToRun = codeFromEditor || code;
     setIsRunning(true);
     setValidationResults(null);
 
-    // Simulate execution delay
-    setTimeout(() => {
-      const result = executePython(codeToRun);
-      
-      if (result.success) {
-        setOutput(result.output || '✅ Code exécuté (aucune sortie)');
-      } else {
-        setOutput(`❌ Erreur: ${result.error}`);
-      }
-
-      setIsRunning(false);
-    }, 300);
+    const result = await executePythonAsync(codeToRun);
+    if (result.success) {
+      setOutput(result.output || '(aucune sortie)');
+    } else {
+      setOutput(result.output ? result.output + '\n❌ ' + result.error : '❌ ' + (result.error || 'Erreur'));
+    }
+    setIsRunning(false);
   };
 
-  const handleValidate = () => {
+  const handleValidate = async () => {
     setIsRunning(true);
 
-    setTimeout(() => {
-      const result = executePython(code);
-      setOutput(result.output || '(Aucune sortie)');
+    const result = await executePythonAsync(code);
+    setOutput(result.success ? (result.output || '(aucune sortie)') : ('❌ ' + result.error));
 
-      const validation = validateCode(code, exercise.tests);
-      setValidationResults(validation);
+    const validation = validateCode(code, exercise.tests);
+    setValidationResults(validation);
 
-      if (validation.passed === validation.total) {
-        setIsCompleted(true);
-        onComplete();
-      }
+    if (validation.passed === validation.total) {
+      setIsCompleted(true);
+      onComplete();
+    }
 
-      setIsRunning(false);
-    }, 500);
+    setIsRunning(false);
   };
 
   const handleReset = () => {
@@ -78,12 +71,7 @@ export default function ExercisePanel({ exercise, onComplete }: ExercisePanelPro
     medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
     hard: 'bg-red-500/20 text-red-400 border-red-500/30'
   };
-
-  const difficultyLabels = {
-    easy: '🟢 Facile',
-    medium: '🟡 Moyen',
-    hard: '🔴 Difficile'
-  };
+  const difficultyLabels = { easy: '🟢 Facile', medium: '🟡 Moyen', hard: '🔴 Difficile' };
 
   return (
     <div className="glass rounded-2xl p-6 animate-fade-in">
@@ -121,11 +109,10 @@ export default function ExercisePanel({ exercise, onComplete }: ExercisePanelPro
 
       {/* Validation Results */}
       {validationResults && (
-        <div className={`mt-4 p-4 rounded-xl border ${
-          validationResults.passed === validationResults.total
+        <div className={`mt-4 p-4 rounded-xl border ${validationResults.passed === validationResults.total
             ? 'bg-green-500/10 border-green-500/30'
             : 'bg-orange-500/10 border-orange-500/30'
-        }`}>
+          }`}>
           <div className="flex items-center gap-2 mb-2">
             {validationResults.passed === validationResults.total ? (
               <CheckCircle size={18} className="text-green-400" />
@@ -190,10 +177,7 @@ export default function ExercisePanel({ exercise, onComplete }: ExercisePanelPro
           </div>
           <p className="text-gray-300 text-sm">{exercise.hints[currentHint]}</p>
           {currentHint < exercise.hints.length - 1 && (
-            <button
-              onClick={handleNextHint}
-              className="mt-2 text-xs text-yellow-400 hover:underline"
-            >
+            <button onClick={handleNextHint} className="mt-2 text-xs text-yellow-400 hover:underline">
               → Indice suivant
             </button>
           )}

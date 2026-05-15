@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import type { ProjectStep } from '../data/modules';
 import { ChevronLeft, ChevronRight, CheckCircle, Circle, Lightbulb, Code2, Download } from 'lucide-react';
 import CodeEditor from './CodeEditor';
-import { executePython } from '../utils/pythonRunner';
+import { executePythonAsync } from '../utils/pythonRunner';
 
 interface StepByStepProjectProps {
   title: string;
@@ -24,13 +24,13 @@ export default function StepByStepProject({
   const [codes, setCodes] = useState<string[]>(steps.map(s => s.starterCode));
   const [output, setOutput] = useState('');
   const [showHint, setShowHint] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
   const [accumulatedCode, setAccumulatedCode] = useState('');
 
   const currentStep = steps[currentStepIndex];
   const progress = (completedSteps.size / steps.length) * 100;
 
   useEffect(() => {
-    // Build accumulated code from all completed steps
     const completed = codes.slice(0, currentStepIndex).join('\n\n');
     setAccumulatedCode(completed);
   }, [currentStepIndex, codes]);
@@ -41,31 +41,33 @@ export default function StepByStepProject({
     setCodes(newCodes);
   };
 
-  const handleRun = (codeFromEditor?: string) => {
+  const handleRun = async (codeFromEditor?: string) => {
+    setIsRunning(true);
     const currentCode = codeFromEditor || codes[currentStepIndex];
     const fullCode = accumulatedCode + '\n\n' + currentCode;
-    const result = executePython(fullCode);
-    if (result.error) {
-      setOutput(`❌ Erreur: ${result.error}`);
-    } else {
+
+    const result = await executePythonAsync(fullCode);
+    if (result.success) {
       setOutput(result.output || '✅ Code exécuté (aucune sortie)');
+    } else {
+      setOutput(result.output ? result.output + '\n❌ ' + result.error : '❌ ' + (result.error || 'Erreur'));
     }
+    setIsRunning(false);
   };
 
   const handleValidate = () => {
     const userCode = codes[currentStepIndex];
     const validation = currentStep.validation;
 
-    // Simple validation: check if the code contains the expected pattern
     const normalizedUser = userCode.replace(/\s+/g, ' ').toLowerCase();
     const normalizedValidation = validation.replace(/\s+/g, ' ').toLowerCase();
-    
-    if (normalizedUser.includes(normalizedValidation) || 
-        userCode.includes(validation) || 
-        userCode.replace(/\s/g, '').includes(validation.replace(/\s/g, ''))) {
-      
+
+    if (normalizedUser.includes(normalizedValidation) ||
+      userCode.includes(validation) ||
+      userCode.replace(/\s/g, '').includes(validation.replace(/\s/g, ''))) {
+
       setOutput('✅ Bravo ! Étape validée avec succès !');
-      
+
       const newCompleted = new Set(completedSteps);
       newCompleted.add(currentStepIndex);
       setCompletedSteps(newCompleted);
@@ -74,7 +76,6 @@ export default function StepByStepProject({
         onComplete();
       }
 
-      // Auto advance to next step after showing success
       if (currentStepIndex < steps.length - 1) {
         setTimeout(() => {
           setCurrentStepIndex(currentStepIndex + 1);
@@ -145,7 +146,6 @@ export default function StepByStepProject({
           </p>
         </div>
 
-        {/* Objectives */}
         <div className="grid sm:grid-cols-2 gap-2">
           {objectives.map((obj, i) => (
             <div key={i} className="flex items-start gap-2 text-sm text-gray-300">
@@ -168,19 +168,14 @@ export default function StepByStepProject({
                 setOutput('');
               }
             }}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-              i === currentStepIndex
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${i === currentStepIndex
                 ? 'bg-python-blue text-white'
                 : completedSteps.has(i)
-                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                : 'bg-white/5 text-gray-400 border border-white/10'
-            }`}
+                  ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                  : 'bg-white/5 text-gray-400 border border-white/10'
+              }`}
           >
-            {completedSteps.has(i) ? (
-              <CheckCircle size={14} />
-            ) : (
-              <Circle size={14} />
-            )}
+            {completedSteps.has(i) ? <CheckCircle size={14} /> : <Circle size={14} />}
             {i + 1}
           </button>
         ))}
@@ -200,7 +195,14 @@ export default function StepByStepProject({
           )}
         </div>
 
-        <p className="text-gray-300 mb-4">{currentStep.instruction}</p>
+        {/* Instruction with formatting */}
+        <div className="bg-python-blue/5 border border-python-blue/20 rounded-xl p-4 mb-4">
+          {currentStep.instruction.split('\n').map((line, idx) => {
+            if (line.startsWith('- ')) return <li key={idx} className="text-gray-300 text-sm ml-4">{line.slice(2)}</li>;
+            if (!line.trim()) return <div key={idx} className="h-2" />;
+            return <p key={idx} className="text-gray-300 text-sm mb-1">{line}</p>;
+          })}
+        </div>
 
         {/* Code Editor */}
         <CodeEditor
@@ -208,7 +210,8 @@ export default function StepByStepProject({
           onCodeChange={handleCodeChange}
           onRun={handleRun}
           output={output}
-          height="200px"
+          isRunning={isRunning}
+          height="220px"
         />
 
         {/* Hint */}
