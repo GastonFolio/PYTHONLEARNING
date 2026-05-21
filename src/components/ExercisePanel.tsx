@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Exercise } from '../data/modules';
 import { executePythonAsync, validateCode } from '../utils/pythonRunner';
-import { RotateCcw, CheckCircle, XCircle, Lightbulb, Eye, EyeOff } from 'lucide-react';
+import { RotateCcw, CheckCircle, XCircle, Lightbulb, Eye, EyeOff, ClipboardList } from 'lucide-react';
 import CodeEditor from './CodeEditor';
 
 interface ExercisePanelProps {
@@ -71,7 +71,8 @@ export default function ExercisePanel({ exercise, onComplete }: ExercisePanelPro
     medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
     hard: 'bg-red-500/20 text-red-400 border-red-500/30'
   };
-  const difficultyLabels = { easy: '🟢 Facile', medium: '🟡 Moyen', hard: '🔴 Difficile' };
+  const difficultyLabels = { easy: 'Facile', medium: 'Moyen', hard: 'Difficile' };
+  const difficultyDotColors = { easy: 'bg-green-400', medium: 'bg-yellow-400', hard: 'bg-red-400' };
 
   return (
     <div className="glass rounded-2xl p-6 animate-fade-in">
@@ -79,7 +80,8 @@ export default function ExercisePanel({ exercise, onComplete }: ExercisePanelPro
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${difficultyColors[exercise.difficulty]}`}>
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1.5 ${difficultyColors[exercise.difficulty]}`}>
+              <span className={`w-2 h-2 rounded-full ${difficultyDotColors[exercise.difficulty]}`} />
               {difficultyLabels[exercise.difficulty]}
             </span>
             {isCompleted && (
@@ -94,7 +96,10 @@ export default function ExercisePanel({ exercise, onComplete }: ExercisePanelPro
 
       {/* Instruction */}
       <div className="bg-python-blue/10 border border-python-blue/20 rounded-xl p-4 mb-4">
-        <p className="text-gray-300 text-sm">📋 <strong>Instruction :</strong> {exercise.instruction}</p>
+        <p className="text-gray-300 text-sm flex items-start gap-2">
+          <ClipboardList size={16} className="flex-shrink-0 mt-0.5 text-python-blue" />
+          <span><strong>Instruction :</strong> {exercise.instruction}</span>
+        </p>
       </div>
 
       {/* Code Editor */}
@@ -138,28 +143,28 @@ export default function ExercisePanel({ exercise, onComplete }: ExercisePanelPro
         <button
           onClick={handleValidate}
           disabled={isRunning}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-semibold text-sm transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-white font-semibold text-sm transition-colors disabled:opacity-50 focus-ring cursor-pointer"
         >
           <CheckCircle size={16} />
           Valider
         </button>
         <button
           onClick={handleReset}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 text-gray-300 hover:bg-white/5 text-sm transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 text-gray-300 hover:bg-white/5 text-sm transition-colors focus-ring cursor-pointer"
         >
           <RotateCcw size={16} />
           Réinitialiser
         </button>
         <button
           onClick={() => setShowHints(!showHints)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 text-sm transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 text-sm transition-colors focus-ring cursor-pointer"
         >
           <Lightbulb size={16} />
           {showHints ? 'Masquer indices' : 'Indices'}
         </button>
         <button
           onClick={() => setShowSolution(!showSolution)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 text-sm transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 text-sm transition-colors focus-ring cursor-pointer"
         >
           {showSolution ? <EyeOff size={16} /> : <Eye size={16} />}
           {showSolution ? 'Masquer' : 'Solution'}
@@ -177,7 +182,7 @@ export default function ExercisePanel({ exercise, onComplete }: ExercisePanelPro
           </div>
           <p className="text-gray-300 text-sm">{exercise.hints[currentHint]}</p>
           {currentHint < exercise.hints.length - 1 && (
-            <button onClick={handleNextHint} className="mt-2 text-xs text-yellow-400 hover:underline">
+            <button onClick={handleNextHint} className="mt-2 text-xs text-yellow-400 hover:underline focus-ring rounded px-1 cursor-pointer">
               → Indice suivant
             </button>
           )}

@@ -57,6 +57,10 @@ body {
   from { width: 0; }
   to { width: 100%; }
 }
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
 
 .animate-float { animation: float 3s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
@@ -84,7 +88,40 @@ body {
   box-shadow: 0 12px 40px rgba(48, 105, 152, 0.3);
 }
 
+/* Focus states for keyboard navigation */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-python-blue/50 focus:ring-offset-2 focus:ring-offset-python-darker;
+}
+
+/* Skeleton loading animation */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 0.5rem;
+}
+
 /* Code block styling */
 pre code {
   font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Accessibility: Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-float,
+  .animate-pulse-glow {
+    animation: none !important;
+  }
+  .card-hover:hover {
+    transform: none !important;
+  }
+  .card-hover:hover {
+    box-shadow: 0 4px 12px rgba(48, 105, 152, 0.2);
+  }
 }

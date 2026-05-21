@@ -1,6 +1,6 @@
 import { modules } from '../data/modules';
 import type { UserProgress } from '../data/storage';
-import { ArrowRight, BookOpen, Code2, Trophy, Zap, Users, Star } from 'lucide-react';
+import { ArrowRight, BookOpen, Code2, Trophy, Zap, Target, MonitorCheck, CheckCircle2, Rocket, BarChart3, Library, Play } from 'lucide-react';
 
 interface HomePageProps {
   onNavigate: (page: string, data?: Record<string, string>) => void;
@@ -12,6 +12,18 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
   const completedLessons = progress.completedLessons.length;
   const progressPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
+  // Find the next incomplete lesson for "continue where you left off"
+  const nextLesson = (() => {
+    for (const mod of modules) {
+      for (const lesson of mod.lessons) {
+        if (!progress.completedLessons.includes(lesson.id)) {
+          return { module: mod, lesson };
+        }
+      }
+    }
+    return null;
+  })();
+
   const stats = [
     { icon: <BookOpen size={24} />, value: `${modules.length}`, label: 'Modules', color: 'text-blue-400' },
     { icon: <Code2 size={24} />, value: `${totalLessons}+`, label: 'Leçons', color: 'text-green-400' },
@@ -20,18 +32,18 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
   ];
 
   const features = [
-    { icon: '🎯', title: 'Apprentissage Progressif', desc: 'Du débutant à l\'avancé, 8 modules complets couvrant tout Python.' },
-    { icon: '💻', title: 'Éditeur de Code Intégré', desc: 'Écrivez et exécutez du Python directement dans votre navigateur.' },
-    { icon: '✅', title: 'Auto-Correction', desc: 'Validez vos exercices instantanément avec des tests automatiques.' },
-    { icon: '🚀', title: 'Projets Guidés', desc: 'Créez des projets pas à pas : calculatrice, jeux, et plus.' },
-    { icon: '📊', title: 'Progression Gamifiée', desc: 'XP, niveaux, badges et streaks pour rester motivé.' },
-    { icon: '📚', title: 'Contenu Premium', desc: 'Leçons détaillées, exemples commentés, exercices pratiques.' },
+    { icon: <Target size={28} className="text-blue-400" />, title: 'Apprentissage Progressif', desc: 'Du débutant à l\'avancé, 8 modules complets couvrant tout Python.' },
+    { icon: <MonitorCheck size={28} className="text-green-400" />, title: 'Éditeur de Code Intégré', desc: 'Écrivez et exécutez du Python directement dans votre navigateur.' },
+    { icon: <CheckCircle2 size={28} className="text-yellow-400" />, title: 'Auto-Correction', desc: 'Validez vos exercices instantanément avec des tests automatiques.' },
+    { icon: <Rocket size={28} className="text-purple-400" />, title: 'Projets Guidés', desc: 'Créez des projets pas à pas : calculatrice, jeux, et plus.' },
+    { icon: <BarChart3 size={28} className="text-pink-400" />, title: 'Progression Gamifiée', desc: 'XP, niveaux, badges et streaks pour rester motivé.' },
+    { icon: <Library size={28} className="text-orange-400" />, title: 'Contenu Premium', desc: 'Leçons détaillées, exemples commentés, exercices pratiques.' },
   ];
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
+      <section className="relative pt-20 pb-20 overflow-hidden">
         {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-96 h-96 bg-python-blue/20 rounded-full blur-3xl" />
@@ -42,7 +54,7 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-python-yellow/10 border border-python-yellow/30 mb-8 animate-fade-in">
-            <Star size={16} className="text-python-yellow" />
+            <Trophy size={16} className="text-python-yellow" />
             <span className="text-sm font-medium text-python-yellow">Plateforme d'apprentissage Python 100% gratuite</span>
           </div>
 
@@ -55,7 +67,7 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
           </h1>
 
           <p className="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto mb-10 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            Une plateforme interactive et moderne pour maîtriser Python. 
+            Une plateforme interactive et moderne pour maîtriser Python.
             Cours structurés, projets pratiques, et progression gamifiée.
             <span className="text-python-yellow font-semibold"> Tout se passe dans votre navigateur et votre terminal.</span>
           </p>
@@ -64,18 +76,44 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-slide-up" style={{ animationDelay: '0.2s' }}>
             <button
               onClick={() => onNavigate('modules')}
-              className="flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-python-blue to-python-blue/80 text-white font-bold text-lg hover:shadow-lg hover:shadow-python-blue/30 transition-all hover:-translate-y-0.5"
+              className="flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-python-blue to-python-blue/80 text-white font-bold text-lg hover:shadow-lg hover:shadow-python-blue/30 transition-all hover:-translate-y-0.5 focus-ring cursor-pointer"
             >
               Commencer l'apprentissage
               <ArrowRight size={20} />
             </button>
             <button
               onClick={() => onNavigate('roadmap')}
-              className="flex items-center gap-2 px-8 py-4 rounded-xl border border-white/20 text-white font-semibold text-lg hover:bg-white/5 transition-all"
+              className="flex items-center gap-2 px-8 py-4 rounded-xl border border-white/20 text-white font-semibold text-lg hover:bg-white/5 transition-all focus-ring cursor-pointer"
             >
               Voir la roadmap
             </button>
           </div>
+
+          {/* Continue Where You Left Off */}
+          {nextLesson && completedLessons > 0 && (
+            <div className="max-w-xl mx-auto mb-12 animate-fade-in" style={{ animationDelay: '0.25s' }}>
+              <button
+                onClick={() => onNavigate('module-detail', { moduleId: nextLesson.module.id })}
+                className="w-full glass rounded-2xl p-5 text-left card-hover border border-python-yellow/20 focus-ring cursor-pointer group"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-python-yellow/10 flex items-center justify-center">
+                    <Play size={20} className="text-python-yellow" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-python-yellow uppercase tracking-wider">Reprendre</span>
+                    <h3 className="text-lg font-bold text-white group-hover:text-python-yellow transition-colors">
+                      {nextLesson.lesson.title}
+                    </h3>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-sm text-gray-400">
+                  <span>Module {nextLesson.module.number} : {nextLesson.module.title}</span>
+                  <ArrowRight size={16} className="text-gray-500 group-hover:text-python-yellow transition-colors" />
+                </div>
+              </button>
+            </div>
+          )}
 
           {/* Progress Bar (if returning user) */}
           {completedLessons > 0 && (
@@ -130,16 +168,21 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
               const lessonIds = mod.lessons.map(l => l.id);
               const completed = lessonIds.filter(id => progress.completedLessons.includes(id)).length;
               const pct = lessonIds.length > 0 ? Math.round((completed / lessonIds.length) * 100) : 0;
-              
+
               return (
                 <button
                   key={mod.id}
                   onClick={() => onNavigate('module-detail', { moduleId: mod.id })}
-                  className="glass rounded-2xl p-6 text-left card-hover group animate-slide-up"
+                  className="glass rounded-2xl p-6 text-left card-hover group animate-slide-up focus-ring cursor-pointer"
                   style={{ animationDelay: `${i * 0.1}s` }}
                 >
                   <div className="flex items-start justify-between mb-4">
-                    <span className="text-4xl">{mod.icon}</span>
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                      style={{ backgroundColor: `${mod.color}15` }}
+                    >
+                      {mod.icon}
+                    </div>
                     <span
                       className="text-xs font-bold px-2.5 py-1 rounded-full"
                       style={{ backgroundColor: `${mod.color}20`, color: mod.color }}
@@ -185,7 +228,7 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((f, i) => (
               <div key={i} className="glass rounded-xl p-6 card-hover">
-                <span className="text-3xl mb-3 block">{f.icon}</span>
+                <div className="mb-3">{f.icon}</div>
                 <h3 className="text-lg font-bold text-white mb-2">{f.title}</h3>
                 <p className="text-sm text-gray-400">{f.desc}</p>
               </div>
@@ -199,7 +242,7 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="glass rounded-2xl p-8 border border-python-blue/30">
             <div className="flex items-start gap-4">
-              <Users size={32} className="text-python-blue flex-shrink-0 mt-1" />
+              <Zap size={32} className="text-python-blue flex-shrink-0 mt-1" />
               <div>
                 <h3 className="text-xl font-bold text-white mb-2">100% Statique & Gratuit</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">
@@ -224,7 +267,7 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
       <footer className="border-t border-white/10 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
           <p className="text-gray-500 text-sm">
-            🐍 PyMaster — Plateforme d'apprentissage Python statique
+            PyMaster — Plateforme d'apprentissage Python statique
           </p>
           <p className="text-gray-600 text-xs mt-2">
             Compatible GitHub Pages • Aucun backend requis • 100% gratuit

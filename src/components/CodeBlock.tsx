@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check, Play, X } from 'lucide-react';
+import { Copy, Check, Play, X, Lightbulb } from 'lucide-react';
 import { executePythonAsync } from '../utils/pythonRunner';
 
 interface CodeBlockProps {
@@ -53,15 +53,15 @@ export default function CodeBlock({ code, title, explanation, language = 'python
               <button
                 onClick={handleRun}
                 disabled={isRunning}
-                className="flex items-center gap-1 px-2.5 py-1 rounded bg-green-600/80 hover:bg-green-500 text-white text-xs font-medium transition-colors disabled:opacity-50"
+                className="flex items-center gap-1 px-2.5 py-1 rounded bg-green-600/80 hover:bg-green-500 text-white text-xs font-medium transition-colors disabled:opacity-50 focus-ring cursor-pointer"
               >
                 <Play size={12} />
-                {isRunning ? 'Exécution...' : '▶ Exécuter'}
+                {isRunning ? 'Exécution...' : 'Exécuter'}
               </button>
             )}
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10 focus-ring cursor-pointer"
             >
               {copied ? <Check size={14} className="text-green-400" /> : <Copy size={14} />}
               {copied ? 'Copié !' : 'Copier'}
@@ -93,7 +93,7 @@ export default function CodeBlock({ code, title, explanation, language = 'python
               <span className={`w-2 h-2 rounded-full ${hasError ? 'bg-red-400' : 'bg-green-400'}`} />
               {hasError ? 'Erreur' : 'Sortie'}
             </span>
-            <button onClick={handleCloseOutput} className="text-gray-500 hover:text-white">
+            <button onClick={handleCloseOutput} className="text-gray-500 hover:text-white focus-ring rounded cursor-pointer">
               <X size={14} />
             </button>
           </div>
@@ -106,7 +106,9 @@ export default function CodeBlock({ code, title, explanation, language = 'python
       {explanation && (
         <div className="bg-python-blue/10 border-t border-python-blue/20 px-4 py-3">
           <p className="text-sm text-blue-200/80">
-            <span className="text-python-yellow font-semibold">💡 Explication :</span> {explanation}
+            <span className="text-python-yellow font-semibold flex items-center gap-1.5 inline-flex mb-1">
+              <Lightbulb size={14} /> Explication :
+            </span>{' '}{explanation}
           </p>
         </div>
       )}
