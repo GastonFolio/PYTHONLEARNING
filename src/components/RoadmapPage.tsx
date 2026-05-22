@@ -16,12 +16,12 @@ export default function RoadmapPage({ onNavigate, progress }: RoadmapPageProps) 
     if (pct === 100) return 'completed';
     if (pct > 0) return 'in-progress';
     if (index === 0) return 'available';
-    
+
     // Check if previous module is at least started
     const prevMod = modules[index - 1];
     const prevCompleted = prevMod.lessons.filter(l => progress.completedLessons.includes(l.id)).length;
     if (prevCompleted > 0) return 'available';
-    
+
     return 'locked';
   };
 
@@ -31,7 +31,7 @@ export default function RoadmapPage({ onNavigate, progress }: RoadmapPageProps) 
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
-            🗺️ Roadmap <span className="gradient-text">Python</span>
+            Roadmap <span className="gradient-text">Python</span>
           </h1>
           <p className="text-gray-400 max-w-2xl mx-auto">
             Votre parcours d'apprentissage Python étape par étape. Suivez la progression
@@ -90,14 +90,20 @@ export default function RoadmapPage({ onNavigate, progress }: RoadmapPageProps) 
                   <button
                     onClick={() => status !== 'locked' && onNavigate('module-detail', { moduleId: mod.id })}
                     disabled={status === 'locked'}
-                    className={`w-full text-left glass rounded-2xl p-6 transition-all ${
+                    className={`w-full text-left glass rounded-2xl p-6 transition-all focus-ring ${
                       status === 'locked'
                         ? 'opacity-50 cursor-not-allowed'
                         : 'card-hover cursor-pointer'
                     }`}
+                    aria-label={status === 'locked' ? `Module ${mod.number}: ${mod.title} (bloqué)` : `Module ${mod.number}: ${mod.title}`}
                   >
                     <div className="flex items-center gap-3 mb-3">
-                      <span className="text-3xl">{mod.icon}</span>
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                        style={{ backgroundColor: `${mod.color}15` }}
+                      >
+                        {mod.icon}
+                      </div>
                       <div>
                         <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                           Module {mod.number}
@@ -106,13 +112,12 @@ export default function RoadmapPage({ onNavigate, progress }: RoadmapPageProps) 
                       </div>
                     </div>
                     <p className="text-sm text-gray-400 mb-4">{mod.description}</p>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 text-xs text-gray-500">
                         <span>{mod.lessons.length} leçons</span>
                         <span>•</span>
                         <span>~{mod.estimatedHours}h</span>
-                        <span>•</span>
                         <span
                           className="font-semibold px-2 py-0.5 rounded-full"
                           style={{ backgroundColor: `${mod.color}20`, color: mod.color }}
@@ -146,7 +151,7 @@ export default function RoadmapPage({ onNavigate, progress }: RoadmapPageProps) 
 
         {/* Summary */}
         <div className="mt-16 glass rounded-2xl p-8 text-center">
-          <h3 className="text-2xl font-bold text-white mb-4">🎓 Objectif Final</h3>
+          <h3 className="text-2xl font-bold text-white mb-4">Objectif Final</h3>
           <p className="text-gray-400 max-w-xl mx-auto mb-6">
             À la fin de ce parcours, vous serez capable de créer des applications Python complètes :
             scripts CLI, applications desktop Tkinter, automatisation, analyse de données et plus encore.

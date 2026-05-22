@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { modules } from '../data/modules';
 import type { UserProgress } from '../data/storage';
 import { saveProgress, resetProgress } from '../data/storage';
-import { User, RotateCcw, Save, AlertTriangle } from 'lucide-react';
+import { User, RotateCcw, Save, AlertTriangle, Star, BookOpen, CheckCircle, Rocket } from 'lucide-react';
 
 interface ProfilePageProps {
   progress: UserProgress;
@@ -44,7 +44,7 @@ export default function ProfilePage({ progress, onProgressUpdate }: ProfilePageP
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
-            👤 <span className="gradient-text">Profil</span>
+            <span className="gradient-text">Profil</span>
           </h1>
         </div>
 
@@ -62,22 +62,24 @@ export default function ProfilePage({ progress, onProgressUpdate }: ProfilePageP
             </div>
             <div className="text-center sm:text-left flex-1">
               <div className="flex items-center gap-3 mb-2 justify-center sm:justify-start">
+                <label htmlFor="user-name" className="sr-only">Votre nom</label>
                 <input
+                  id="user-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Votre nom..."
-                  className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-python-blue"
+                  className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-python-blue focus-ring"
                 />
                 <button
                   onClick={handleSaveName}
-                  className="flex items-center gap-1 px-3 py-2 rounded-lg bg-python-blue/20 text-python-blue hover:bg-python-blue/30 transition-all border border-python-blue/30"
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg bg-python-blue/20 text-python-blue hover:bg-python-blue/30 transition-all border border-python-blue/30 focus-ring cursor-pointer"
                 >
                   <Save size={16} />
-                  {saved ? '✓' : 'Sauver'}
+                  {saved ? 'Sauvé' : 'Sauver'}
                 </button>
               </div>
-              
+
               {/* Level */}
               <div className="mt-3">
                 <div className="flex items-center gap-2 mb-1">
@@ -99,13 +101,13 @@ export default function ProfilePage({ progress, onProgressUpdate }: ProfilePageP
         {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'XP Total', value: progress.totalXP, icon: '⭐', color: '#FFD43B' },
-            { label: 'Leçons', value: `${progress.completedLessons.length}/${totalLessons}`, icon: '📚', color: '#10b981' },
-            { label: 'Quiz', value: `${progress.completedQuizzes.length}/${totalQuizzes}`, icon: '✅', color: '#8b5cf6' },
-            { label: 'Projets', value: `${progress.completedProjects.length}/${totalProjects}`, icon: '🚀', color: '#ef4444' },
+            { label: 'XP Total', value: progress.totalXP, icon: <Star size={24} className="text-python-yellow" />, color: '#FFD43B' },
+            { label: 'Leçons', value: `${progress.completedLessons.length}/${totalLessons}`, icon: <BookOpen size={24} className="text-accent-green" />, color: '#10b981' },
+            { label: 'Quiz', value: `${progress.completedQuizzes.length}/${totalQuizzes}`, icon: <CheckCircle size={24} className="text-accent-purple" />, color: '#8b5cf6' },
+            { label: 'Projets', value: `${progress.completedProjects.length}/${totalProjects}`, icon: <Rocket size={24} className="text-red-400" />, color: '#ef4444' },
           ].map((stat, i) => (
             <div key={i} className="glass rounded-xl p-4 text-center">
-              <span className="text-2xl block mb-1">{stat.icon}</span>
+              <div className="flex justify-center mb-1">{stat.icon}</div>
               <div className="text-xl font-bold" style={{ color: stat.color }}>{stat.value}</div>
               <div className="text-xs text-gray-500">{stat.label}</div>
             </div>
@@ -114,7 +116,7 @@ export default function ProfilePage({ progress, onProgressUpdate }: ProfilePageP
 
         {/* Module Progress */}
         <div className="glass rounded-2xl p-6 sm:p-8 mb-8">
-          <h2 className="text-xl font-bold text-white mb-6">📊 Progression par module</h2>
+          <h2 className="text-xl font-bold text-white mb-6">Progression par module</h2>
           <div className="space-y-4">
             {modules.map(mod => {
               const lessonIds = mod.lessons.map(l => l.id);
@@ -124,7 +126,12 @@ export default function ProfilePage({ progress, onProgressUpdate }: ProfilePageP
 
               return (
                 <div key={mod.id} className="flex items-center gap-4">
-                  <span className="text-2xl w-10 text-center">{mod.icon}</span>
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0"
+                    style={{ backgroundColor: `${mod.color}15` }}
+                  >
+                    {mod.icon}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-white truncate">{mod.title}</span>
@@ -151,7 +158,7 @@ export default function ProfilePage({ progress, onProgressUpdate }: ProfilePageP
         {/* Badges */}
         {progress.badges.length > 0 && (
           <div className="glass rounded-2xl p-6 sm:p-8 mb-8">
-            <h2 className="text-xl font-bold text-white mb-4">🏆 Badges obtenus</h2>
+            <h2 className="text-xl font-bold text-white mb-4">Badges obtenus</h2>
             <div className="flex flex-wrap gap-3">
               {progress.badges.map(badge => (
                 <div key={badge.id} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-python-yellow/10 border border-python-yellow/20">
@@ -173,18 +180,18 @@ export default function ProfilePage({ progress, onProgressUpdate }: ProfilePageP
             Réinitialiser votre progression supprimera toutes vos données locales
             (leçons, quiz, badges, XP). Cette action est irréversible.
           </p>
-          
+
           {showReset ? (
             <div className="flex items-center gap-3">
               <button
                 onClick={handleReset}
-                className="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors"
+                className="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition-colors focus-ring cursor-pointer"
               >
                 Confirmer la réinitialisation
               </button>
               <button
                 onClick={() => setShowReset(false)}
-                className="px-4 py-2 rounded-lg border border-white/20 text-gray-400 hover:text-white transition-colors"
+                className="px-4 py-2 rounded-lg border border-white/20 text-gray-400 hover:text-white transition-colors focus-ring cursor-pointer"
               >
                 Annuler
               </button>
@@ -192,7 +199,7 @@ export default function ProfilePage({ progress, onProgressUpdate }: ProfilePageP
           ) : (
             <button
               onClick={() => setShowReset(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors focus-ring cursor-pointer"
             >
               <RotateCcw size={16} />
               Réinitialiser la progression

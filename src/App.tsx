@@ -3,6 +3,7 @@ import { loadProgress } from './data/storage';
 import type { UserProgress } from './data/storage';
 import { loadPyodideRuntime, isPyodideReady } from './utils/pythonRunner';
 import Header from './components/Header';
+import Breadcrumb from './components/Breadcrumb';
 import HomePage from './components/HomePage';
 import RoadmapPage from './components/RoadmapPage';
 import ModulesPage from './components/ModulesPage';
@@ -16,6 +17,29 @@ interface NavigationState {
   page: string;
   data: Record<string, string>;
 }
+
+// Breadcrumb definitions per page
+const breadcrumbMap: Record<string, (data: Record<string, string>, navigate: (page: string, data?: Record<string, string>) => void) => { label: string; onClick?: () => void }[]> = {
+  home: () => [],
+  roadmap: () => [{ label: 'Roadmap' }],
+  modules: () => [{ label: 'Modules' }],
+  badges: () => [{ label: 'Badges' }],
+  profile: () => [{ label: 'Profil' }],
+  'module-detail': (_data, nav) => [
+    { label: 'Modules', onClick: () => nav('modules') },
+    { label: _data.moduleTitle || 'Détail' },
+  ],
+  quiz: (_data, nav) => [
+    { label: 'Modules', onClick: () => nav('modules') },
+    { label: _data.moduleTitle || 'Module', onClick: () => nav('module-detail', { moduleId: _data.moduleId || '' }) },
+    { label: 'Quiz' },
+  ],
+  project: (_data, nav) => [
+    { label: 'Modules', onClick: () => nav('modules') },
+    { label: _data.moduleTitle || 'Module', onClick: () => nav('module-detail', { moduleId: _data.moduleId || '' }) },
+    { label: 'Projet' },
+  ],
+};
 
 export default function App() {
   const [progress, setProgress] = useState<UserProgress>(loadProgress());
@@ -96,10 +120,19 @@ export default function App() {
     }
   };
 
+  const breadcrumbs = (breadcrumbMap[nav.page] || (() => []))(nav.data, handleNavigate);
+
   return (
     <div className="min-h-screen bg-python-darker text-white">
       <Header currentPage={nav.page} onNavigate={handleNavigate} progress={progress} />
-      <main>{renderPage()}</main>
+      <main className="pt-24">
+        {breadcrumbs.length > 0 && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <Breadcrumb items={breadcrumbs} />
+          </div>
+        )}
+        {renderPage()}
+      </main>
 
       {/* Pyodide status indicator */}
       <div className="fixed bottom-4 right-4 z-40">
@@ -113,10 +146,10 @@ export default function App() {
               pyodideStatus === 'loading' ? 'bg-yellow-400' : 'bg-blue-400'
             }`} />
           {pyodideStatus === 'ready'
-            ? '🐍 Python prêt'
+            ? 'Python prêt'
             : pyodideStatus === 'loading'
-              ? '⏳ Chargement Python...'
-              : '⚡ Mode rapide'}
+              ? 'Chargement Python...'
+              : 'Mode rapide'}
         </div>
       </div>
     </div>

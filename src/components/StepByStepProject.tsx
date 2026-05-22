@@ -48,7 +48,7 @@ export default function StepByStepProject({
 
     const result = await executePythonAsync(fullCode);
     if (result.success) {
-      setOutput(result.output || '✅ Code exécuté (aucune sortie)');
+      setOutput(result.output || 'Code exécuté (aucune sortie)');
     } else {
       setOutput(result.output ? result.output + '\n❌ ' + result.error : '❌ ' + (result.error || 'Erreur'));
     }
@@ -66,7 +66,7 @@ export default function StepByStepProject({
       userCode.includes(validation) ||
       userCode.replace(/\s/g, '').includes(validation.replace(/\s/g, ''))) {
 
-      setOutput('✅ Bravo ! Étape validée avec succès !');
+      setOutput('Bravo ! Étape validée avec succès !');
 
       const newCompleted = new Set(completedSteps);
       newCompleted.add(currentStepIndex);
@@ -84,7 +84,7 @@ export default function StepByStepProject({
         }, 1500);
       }
     } else {
-      setOutput(`❌ Le code ne correspond pas à ce qui est attendu.\n\n💡 Indice: Votre code doit contenir "${validation}"\n\nVérifiez votre syntaxe et réessayez.`);
+      setOutput(`Le code ne correspond pas à ce qui est attendu.\n\nIndice: Votre code doit contenir "${validation}"\n\nVérifiez votre syntaxe et réessayez.`);
     }
   };
 
@@ -168,12 +168,14 @@ export default function StepByStepProject({
                 setOutput('');
               }
             }}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${i === currentStepIndex
-                ? 'bg-python-blue text-white'
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all focus-ring ${
+              i === currentStepIndex
+                ? 'bg-python-blue text-white cursor-pointer'
                 : completedSteps.has(i)
-                  ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                  : 'bg-white/5 text-gray-400 border border-white/10'
-              }`}
+                  ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-pointer'
+                  : 'bg-white/5 text-gray-400 border border-white/10 cursor-pointer'
+            }`}
+            aria-label={`Étape ${i + 1}: ${step.title}`}
           >
             {completedSteps.has(i) ? <CheckCircle size={14} /> : <Circle size={14} />}
             {i + 1}
@@ -217,7 +219,7 @@ export default function StepByStepProject({
         {/* Hint */}
         <button
           onClick={() => setShowHint(!showHint)}
-          className="flex items-center gap-2 mt-4 text-sm text-yellow-400 hover:underline"
+          className="flex items-center gap-2 mt-4 text-sm text-yellow-400 hover:underline focus-ring rounded px-1 cursor-pointer"
         >
           <Lightbulb size={16} />
           {showHint ? 'Masquer l\'indice' : 'Afficher un indice'}
@@ -225,7 +227,10 @@ export default function StepByStepProject({
 
         {showHint && (
           <div className="mt-3 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 animate-fade-in">
-            <p className="text-sm text-yellow-300">💡 {currentStep.hint}</p>
+            <p className="text-sm text-yellow-300 flex items-start gap-2">
+              <Lightbulb size={16} className="flex-shrink-0 mt-0.5" />
+              {currentStep.hint}
+            </p>
           </div>
         )}
 
@@ -234,7 +239,7 @@ export default function StepByStepProject({
           <button
             onClick={handlePrevious}
             disabled={currentStepIndex === 0}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 text-gray-300 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 text-gray-300 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-colors focus-ring cursor-pointer"
           >
             <ChevronLeft size={18} />
             Précédent
@@ -243,7 +248,7 @@ export default function StepByStepProject({
           {!completedSteps.has(currentStepIndex) ? (
             <button
               onClick={handleValidate}
-              className="flex items-center gap-2 px-6 py-2 rounded-lg bg-gradient-to-r from-green-600 to-green-500 text-white font-semibold hover:shadow-lg transition-all"
+              className="flex items-center gap-2 px-6 py-2 rounded-lg bg-gradient-to-r from-green-600 to-green-500 text-white font-semibold hover:shadow-lg transition-all focus-ring cursor-pointer"
             >
               <CheckCircle size={18} />
               Valider cette étape
@@ -251,7 +256,7 @@ export default function StepByStepProject({
           ) : currentStepIndex < steps.length - 1 ? (
             <button
               onClick={handleNext}
-              className="flex items-center gap-2 px-6 py-2 rounded-lg bg-python-blue text-white font-semibold hover:bg-python-blue/80 transition-colors"
+              className="flex items-center gap-2 px-6 py-2 rounded-lg bg-python-blue text-white font-semibold hover:bg-python-blue/80 transition-colors focus-ring cursor-pointer"
             >
               Suivant
               <ChevronRight size={18} />
@@ -259,7 +264,7 @@ export default function StepByStepProject({
           ) : (
             <button
               onClick={handleDownload}
-              className="flex items-center gap-2 px-6 py-2 rounded-lg bg-accent-purple text-white font-semibold hover:bg-accent-purple/80 transition-colors"
+              className="flex items-center gap-2 px-6 py-2 rounded-lg bg-accent-purple text-white font-semibold hover:bg-accent-purple/80 transition-colors focus-ring cursor-pointer"
             >
               <Download size={18} />
               Télécharger le projet

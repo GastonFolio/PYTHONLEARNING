@@ -1,10 +1,26 @@
 import type { UserProgress } from '../data/storage';
 import { BADGE_DEFINITIONS } from '../data/storage';
-import { Lock } from 'lucide-react';
+import { Lock, Star, BookOpen, CheckCircle, Trophy, Zap, Flame } from 'lucide-react';
 
 interface BadgesPageProps {
   progress: UserProgress;
 }
+
+// Map badge IDs to Lucide icons
+const badgeIconMap: Record<string, React.ReactNode> = {
+  'first-lesson': <BookOpen size={40} className="text-green-400" />,
+  'five-lessons': <BookOpen size={40} className="text-blue-400" />,
+  'ten-lessons': <BookOpen size={40} className="text-purple-400" />,
+  'first-quiz': <CheckCircle size={40} className="text-yellow-400" />,
+  'perfect-quiz': <Star size={40} className="text-python-yellow" />,
+  'first-project': <Trophy size={40} className="text-accent-green" />,
+  'all-projects': <Trophy size={40} className="text-python-yellow" />,
+  'streak-3': <Flame size={40} className="text-orange-400" />,
+  'streak-7': <Flame size={40} className="text-red-400" />,
+  'xp-500': <Zap size={40} className="text-accent-purple" />,
+  'xp-1000': <Zap size={40} className="text-python-yellow" />,
+  'module-complete': <CheckCircle size={40} className="text-green-400" />,
+};
 
 export default function BadgesPage({ progress }: BadgesPageProps) {
   const earnedIds = new Set(progress.badges.map(b => b.id));
@@ -15,7 +31,7 @@ export default function BadgesPage({ progress }: BadgesPageProps) {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
-            🏆 Vos <span className="gradient-text">Badges</span>
+            Vos <span className="gradient-text">Badges</span>
           </h1>
           <p className="text-gray-400 max-w-2xl mx-auto">
             Gagnez des badges en complétant des leçons, quiz et projets.
@@ -32,6 +48,7 @@ export default function BadgesPage({ progress }: BadgesPageProps) {
           {BADGE_DEFINITIONS.map(def => {
             const earned = earnedIds.has(def.id);
             const badge = progress.badges.find(b => b.id === def.id);
+            const icon = badgeIconMap[def.id] || <Star size={40} className="text-gray-400" />;
 
             return (
               <div
@@ -42,8 +59,8 @@ export default function BadgesPage({ progress }: BadgesPageProps) {
                     : 'opacity-50'
                 }`}
               >
-                <div className={`text-5xl mb-3 ${earned ? '' : 'grayscale'}`}>
-                  {earned ? def.icon : <Lock size={40} className="mx-auto text-gray-600" />}
+                <div className={`mb-3 ${earned ? '' : 'grayscale'}`}>
+                  {earned ? icon : <Lock size={40} className="mx-auto text-gray-600" />}
                 </div>
                 <h3 className={`font-bold mb-1 ${earned ? 'text-white' : 'text-gray-500'}`}>
                   {def.title}
@@ -63,21 +80,33 @@ export default function BadgesPage({ progress }: BadgesPageProps) {
 
         {/* Stats */}
         <div className="mt-12 glass rounded-2xl p-8">
-          <h2 className="text-xl font-bold text-white mb-6">📊 Statistiques</h2>
+          <h2 className="text-xl font-bold text-white mb-6">Statistiques</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
             <div className="text-center">
+              <div className="flex justify-center mb-1">
+                <Star size={28} className="text-python-yellow" />
+              </div>
               <div className="text-3xl font-black text-python-yellow mb-1">{progress.totalXP}</div>
               <div className="text-sm text-gray-400">XP Total</div>
             </div>
             <div className="text-center">
+              <div className="flex justify-center mb-1">
+                <BookOpen size={28} className="text-accent-green" />
+              </div>
               <div className="text-3xl font-black text-accent-green mb-1">{progress.completedLessons.length}</div>
               <div className="text-sm text-gray-400">Leçons</div>
             </div>
             <div className="text-center">
+              <div className="flex justify-center mb-1">
+                <CheckCircle size={28} className="text-accent-purple" />
+              </div>
               <div className="text-3xl font-black text-accent-purple mb-1">{progress.completedQuizzes.length}</div>
               <div className="text-sm text-gray-400">Quiz</div>
             </div>
             <div className="text-center">
+              <div className="flex justify-center mb-1">
+                <Flame size={28} className="text-accent-orange" />
+              </div>
               <div className="text-3xl font-black text-accent-orange mb-1">{progress.streak}</div>
               <div className="text-sm text-gray-400">Jours consécutifs</div>
             </div>
