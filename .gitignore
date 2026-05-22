@@ -1,0 +1,26 @@
+# OpenCode agent & skills (local only)
+.opencode/
+
+# OpenAgent server (local only)
+openagent/
+
+# OpenAgentsControl (local only)
+OpenAgentsControl/
+
+# Dependencies
+node_modules/
+dist/
+
+# Logs
+*.log
+
+# Temp files
+tmp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
