@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { modules } from '../data/modules';
 import type { UserProgress } from '../data/storage';
-import { Clock, BookOpen, ChevronRight, CheckCircle, Search, Filter, Rocket } from 'lucide-react';
+import { isModuleUnlocked } from '../data/storage';
+import { Clock, BookOpen, ChevronRight, CheckCircle, Lock } from 'lucide-react';
+import { Search, Filter, Rocket } from 'lucide-react';
 
 interface ModulesPageProps {
   onNavigate: (page: string, data?: Record<string, string>) => void;
@@ -48,7 +50,8 @@ export default function ModulesPage({ onNavigate, progress }: ModulesPageProps) 
           </h1>
           <p className="text-gray-400 max-w-2xl mx-auto">
             Explorez chaque module en détail. Chaque module contient des leçons,
-            des exemples de code, des quiz et un projet pratique.
+            des exemples de code, des exercices et un quiz. Les modules se
+            déverrouillent au fur et à mesure de votre progression.
           </p>
         </div>
 
@@ -117,6 +120,8 @@ export default function ModulesPage({ onNavigate, progress }: ModulesPageProps) 
             </div>
           ) : (
             filteredModules.map((mod) => {
+              const moduleIndex = modules.indexOf(mod);
+              const unlocked = isModuleUnlocked(modules, progress, moduleIndex);
               const lessonIds = mod.lessons.map(l => l.id);
               const completed = lessonIds.filter(id => progress.completedLessons.includes(id)).length;
               const pct = lessonIds.length > 0 ? Math.round((completed / lessonIds.length) * 100) : 0;
@@ -126,8 +131,11 @@ export default function ModulesPage({ onNavigate, progress }: ModulesPageProps) 
               return (
                 <button
                   key={mod.id}
-                  onClick={() => onNavigate('module-detail', { moduleId: mod.id })}
-                  className="w-full glass rounded-2xl p-6 sm:p-8 text-left card-hover group focus-ring cursor-pointer"
+                  onClick={() => unlocked && onNavigate('module-detail', { moduleId: mod.id })}
+                  disabled={!unlocked}
+                  className={`w-full glass rounded-2xl p-6 sm:p-8 text-left group focus-ring ${
+                    unlocked ? 'card-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'
+                  }`}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center gap-6">
                     {/* Icon & Number */}
@@ -205,7 +213,13 @@ export default function ModulesPage({ onNavigate, progress }: ModulesPageProps) 
                     </div>
 
                     {/* Arrow */}
-                    <ChevronRight size={24} className="text-gray-500 group-hover:text-python-yellow transition-colors flex-shrink-0 hidden sm:block" />
+                    {unlocked ? (
+                      <ChevronRight size={24} className="text-gray-500 group-hover:text-python-yellow transition-colors flex-shrink-0 hidden sm:block" />
+                    ) : (
+                      <span className="flex items-center gap-2 text-gray-500 text-sm flex-shrink-0 hidden sm:flex">
+                        <Lock size={18} /> Verrouillé
+                      </span>
+                    )}
                   </div>
                 </button>
               );

@@ -1,5 +1,6 @@
 import { modules } from '../data/modules';
 import type { UserProgress } from '../data/storage';
+import { isModuleUnlocked } from '../data/storage';
 import { CheckCircle, Circle, Lock, ChevronRight } from 'lucide-react';
 
 interface RoadmapPageProps {
@@ -15,12 +16,7 @@ export default function RoadmapPage({ onNavigate, progress }: RoadmapPageProps) 
 
     if (pct === 100) return 'completed';
     if (pct > 0) return 'in-progress';
-    if (index === 0) return 'available';
-
-    // Check if previous module is at least started
-    const prevMod = modules[index - 1];
-    const prevCompleted = prevMod.lessons.filter(l => progress.completedLessons.includes(l.id)).length;
-    if (prevCompleted > 0) return 'available';
+    if (isModuleUnlocked(modules, progress, index)) return 'available';
 
     return 'locked';
   };
@@ -154,10 +150,11 @@ export default function RoadmapPage({ onNavigate, progress }: RoadmapPageProps) 
           <h3 className="text-2xl font-bold text-white mb-4">Objectif Final</h3>
           <p className="text-gray-400 max-w-xl mx-auto mb-6">
             À la fin de ce parcours, vous serez capable de créer des applications Python complètes :
-            scripts CLI, applications desktop Tkinter, automatisation, analyse de données et plus encore.
+            jeux en console, carnets d'adresses persistants, scripts d'automatisation,
+            analyse de fichiers CSV et outils en ligne de commande.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            {['Scripts CLI', 'Apps Tkinter', 'Automatisation', 'Web Scraping', 'Analyse CSV', 'APIs'].map(skill => (
+            {['Jeux console', 'Fichiers CSV/JSON', 'Automatisation', 'CLI argparse', 'POO & Dataclasses', 'Projets guidés'].map(skill => (
               <span key={skill} className="px-4 py-2 rounded-xl bg-accent-purple/10 text-accent-purple text-sm font-medium border border-accent-purple/20">
                 {skill}
               </span>

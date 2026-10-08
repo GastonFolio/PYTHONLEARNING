@@ -24,3 +24,6 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+dist-ssr/
+npm-debug.log*
+*.local

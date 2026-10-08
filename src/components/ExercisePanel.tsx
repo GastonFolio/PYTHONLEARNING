@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Exercise } from '../data/modules';
 import { executePythonAsync, validateCode } from '../utils/pythonRunner';
 import { RotateCcw, CheckCircle, XCircle, Lightbulb, Eye, EyeOff, ClipboardList } from 'lucide-react';
+import { loadProgress, completeExercise } from '../data/storage';
 import CodeEditor from './CodeEditor';
 
 interface ExercisePanelProps {
@@ -21,7 +22,14 @@ export default function ExercisePanel({ exercise, onComplete }: ExercisePanelPro
     total: number;
     results: { passed: boolean; message: string }[];
   } | null>(null);
-  const [isCompleted, setIsCompleted] = useState(false);
+  // Persistance : un exercice déjà réussi reste marqué comme complété (+15 XP une seule fois)
+  const [isCompleted, setIsCompleted] = useState(() => {
+    try {
+      return (loadProgress().completedExercises || []).includes(exercise.id);
+    } catch {
+      return false;
+    }
+  });
 
   const handleRun = async (codeFromEditor?: string) => {
     const codeToRun = codeFromEditor || code;
@@ -48,6 +56,7 @@ export default function ExercisePanel({ exercise, onComplete }: ExercisePanelPro
 
     if (validation.passed === validation.total) {
       setIsCompleted(true);
+      completeExercise(exercise.id);
       onComplete();
     }
 

@@ -7,6 +7,11 @@ import Breadcrumb from './components/Breadcrumb';
 import HomePage from './components/HomePage';
 import RoadmapPage from './components/RoadmapPage';
 import ModulesPage from './components/ModulesPage';
+import ProjectsPage from './components/ProjectsPage';
+import IntensivePage from './components/IntensivePage';
+import VerificationPage from './components/VerificationPage';
+import ExamRunner from './components/ExamRunner';
+import ProjectDetailPage from './components/ProjectDetailPage';
 import ModuleDetailPage from './components/ModuleDetailPage';
 import QuizPage from './components/QuizPage';
 import ProjectPage from './components/ProjectPage';
@@ -41,9 +46,43 @@ const breadcrumbMap: Record<string, (data: Record<string, string>, navigate: (pa
   ],
 };
 
+const VALID_PAGES = [
+  'home', 'roadmap', 'modules', 'projects', 'project-detail',
+  'module-detail', 'quiz', 'project', 'badges', 'profile',
+  'intensive', 'verification', 'exam',
+];
+
+// Routage par hash : #/modules, #/module-detail?moduleId=mod-1 ...
+// => le bouton retour du navigateur fonctionne, le refresh garde la page,
+// et les liens vers un module/quiz/projet sont partageables.
+function parseHash(): NavigationState {
+  try {
+    const raw = window.location.hash.replace(/^#\/?/, '');
+    const [page, qs] = raw.split('?');
+    const data: Record<string, string> = {};
+    if (qs) {
+      for (const part of qs.split('&')) {
+        const [k, v] = part.split('=');
+        if (k) data[decodeURIComponent(k)] = decodeURIComponent(v || '');
+      }
+    }
+    if (VALID_PAGES.includes(page)) return { page, data };
+  } catch {
+    // ignore et retourne l'accueil
+  }
+  return { page: 'home', data: {} };
+}
+
+function toHash(page: string, data?: Record<string, string>): string {
+  const qs = data && Object.keys(data).length > 0
+    ? '?' + Object.entries(data).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&')
+    : '';
+  return `#/${page}${qs}`;
+}
+
 export default function App() {
   const [progress, setProgress] = useState<UserProgress>(loadProgress());
-  const [nav, setNav] = useState<NavigationState>({ page: 'home', data: {} });
+  const [nav, setNav] = useState<NavigationState>(() => parseHash());
   const [pyodideStatus, setPyodideStatus] = useState<'loading' | 'ready' | 'fallback'>('loading');
 
   const refreshProgress = useCallback(() => {
@@ -72,9 +111,27 @@ export default function App() {
     return () => clearInterval(id);
   }, [pyodideStatus]);
 
+  // Synchronise la navigation avec l'URL (bouton retour/refresh/liens)
+  useEffect(() => {
+    const onHashChange = () => {
+      setNav(parseHash());
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    window.addEventListener('hashchange', onHashChange);
+    if (!window.location.hash) {
+      window.location.hash = toHash('home');
+    }
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
   const handleNavigate = useCallback((page: string, data?: Record<string, string>) => {
-    setNav({ page, data: data || {} });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const hash = toHash(page, data);
+    if (window.location.hash === hash) {
+      setNav({ page, data: data || {} });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.location.hash = hash;
+    }
   }, []);
 
   const renderPage = () => {
@@ -85,6 +142,17 @@ export default function App() {
         return <RoadmapPage onNavigate={handleNavigate} progress={progress} />;
       case 'modules':
         return <ModulesPage onNavigate={handleNavigate} progress={progress} />;
+      case 'projects':
+        return <ProjectsPage onNavigate={handleNavigate} progress={progress} />;
+      case 'project-detail':
+        return (
+          <ProjectDetailPage
+            projectId={nav.data.projectId || ''}
+            onNavigate={handleNavigate}
+            progress={progress}
+            onProgressUpdate={refreshProgress}
+          />
+        );
       case 'module-detail':
         return (
           <ModuleDetailPage
@@ -115,6 +183,24 @@ export default function App() {
         return <BadgesPage progress={progress} />;
       case 'profile':
         return <ProfilePage progress={progress} onProgressUpdate={refreshProgress} />;
+      case 'intensive':
+        return (
+          <IntensivePage
+            onNavigate={handleNavigate}
+            progress={progress}
+            onProgressUpdate={refreshProgress}
+          />
+        );
+      case 'verification':
+        return <VerificationPage onNavigate={handleNavigate} progress={progress} />;
+      case 'exam':
+        return (
+          <ExamRunner
+            examId={nav.data.examId || ''}
+            onNavigate={handleNavigate}
+            onProgressUpdate={refreshProgress}
+          />
+        );
       default:
         return <HomePage onNavigate={handleNavigate} progress={progress} />;
     }

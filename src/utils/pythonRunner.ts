@@ -600,10 +600,27 @@ export function validateCode(code: string, tests: { input: string; expected: str
   let passed = 0;
 
   const execution = executePython(code);
+  // Anti-triche : on retire les commentaires et les chaînes docstring avant
+  // de vérifier la présence du motif dans le code source.
+  const codeWithoutComments = code
+    .split('\n')
+    .map(line => {
+      // coupe le commentaire de fin de ligne (en ignorant les # dans les strings simples)
+      let inSingle = false;
+      let inDouble = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === "'" && !inDouble) inSingle = !inSingle;
+        else if (c === '"' && !inSingle) inDouble = !inDouble;
+        else if (c === '#' && !inSingle && !inDouble) return line.slice(0, i);
+      }
+      return line;
+    })
+    .join('\n');
 
   for (const test of tests) {
     const outputContains = execution.output.includes(test.expected);
-    const codeContains = code.includes(test.expected);
+    const codeContains = codeWithoutComments.includes(test.expected);
 
     if (outputContains || codeContains) {
       results.push({ passed: true, message: `✅ ${(test as any).description || test.expected}` });

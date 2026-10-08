@@ -1,5 +1,7 @@
 import { modules } from '../data/modules';
+import { standaloneProjects } from '../data/projects';
 import type { UserProgress } from '../data/storage';
+import { isModuleUnlocked } from '../data/storage';
 import { ArrowRight, BookOpen, Code2, Trophy, Zap, Target, MonitorCheck, CheckCircle2, Rocket, BarChart3, Library, Play } from 'lucide-react';
 
 interface HomePageProps {
@@ -27,12 +29,12 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
   const stats = [
     { icon: <BookOpen size={24} />, value: `${modules.length}`, label: 'Modules', color: 'text-blue-400' },
     { icon: <Code2 size={24} />, value: `${totalLessons}+`, label: 'Leçons', color: 'text-green-400' },
-    { icon: <Trophy size={24} />, value: `${modules.filter(m => m.project).length}`, label: 'Projets', color: 'text-yellow-400' },
+    { icon: <Trophy size={24} />, value: `${modules.filter(m => m.project).length + standaloneProjects.length}`, label: 'Projets', color: 'text-yellow-400' },
     { icon: <Zap size={24} />, value: '100%', label: 'Gratuit', color: 'text-purple-400' },
   ];
 
   const features = [
-    { icon: <Target size={28} className="text-blue-400" />, title: 'Apprentissage Progressif', desc: 'Du débutant à l\'avancé, 8 modules complets couvrant tout Python.' },
+    { icon: <Target size={28} className="text-blue-400" />, title: 'Apprentissage Progressif', desc: `Du débutant à l'avancé, ${modules.length} modules complets couvrant tout Python.` },
     { icon: <MonitorCheck size={28} className="text-green-400" />, title: 'Éditeur de Code Intégré', desc: 'Écrivez et exécutez du Python directement dans votre navigateur.' },
     { icon: <CheckCircle2 size={28} className="text-yellow-400" />, title: 'Auto-Correction', desc: 'Validez vos exercices instantanément avec des tests automatiques.' },
     { icon: <Rocket size={28} className="text-purple-400" />, title: 'Projets Guidés', desc: 'Créez des projets pas à pas : calculatrice, jeux, et plus.' },
@@ -159,7 +161,7 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
               Parcours <span className="gradient-text">structuré</span>
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              8 modules progressifs couvrant tous les aspects de Python, des fondamentaux aux projets avancés.
+              {modules.length} modules progressifs couvrant tous les aspects de Python, des fondamentaux aux projets avancés.
             </p>
           </div>
 
@@ -168,12 +170,16 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
               const lessonIds = mod.lessons.map(l => l.id);
               const completed = lessonIds.filter(id => progress.completedLessons.includes(id)).length;
               const pct = lessonIds.length > 0 ? Math.round((completed / lessonIds.length) * 100) : 0;
+              const unlocked = isModuleUnlocked(modules, progress, i);
 
               return (
                 <button
                   key={mod.id}
-                  onClick={() => onNavigate('module-detail', { moduleId: mod.id })}
-                  className="glass rounded-2xl p-6 text-left card-hover group animate-slide-up focus-ring cursor-pointer"
+                  onClick={() => unlocked && onNavigate('module-detail', { moduleId: mod.id })}
+                  disabled={!unlocked}
+                  className={`glass rounded-2xl p-6 text-left group animate-slide-up ${
+                    unlocked ? 'card-hover focus-ring cursor-pointer' : 'opacity-50 cursor-not-allowed'
+                  }`}
                   style={{ animationDelay: `${i * 0.1}s` }}
                 >
                   <div className="flex items-start justify-between mb-4">
@@ -181,7 +187,7 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
                       className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
                       style={{ backgroundColor: `${mod.color}15` }}
                     >
-                      {mod.icon}
+                      {unlocked ? mod.icon : '🔒'}
                     </div>
                     <span
                       className="text-xs font-bold px-2.5 py-1 rounded-full"
@@ -212,6 +218,46 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
                 </button>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Entraînement intensif + Vérification */}
+      <section className="py-10 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid md:grid-cols-2 gap-6">
+            <button
+              onClick={() => onNavigate('intensive')}
+              className="glass rounded-2xl p-8 text-left card-hover group border-t-2 border-t-orange-500"
+            >
+              <span className="text-4xl mb-3 block">🏋️</span>
+              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-python-yellow transition-colors">
+                Entraînement Intensif — 80 exercices consécutifs
+              </h3>
+              <p className="text-sm text-gray-400 mb-4">
+                7 paliers verrouillés dans l'ordre : chaque exercice déverrouille le suivant.
+                Le chemin le plus rapide vers les automatismes.
+              </p>
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-orange-400">
+                Commencer l'intensif <ArrowRight size={16} />
+              </span>
+            </button>
+            <button
+              onClick={() => onNavigate('verification')}
+              className="glass rounded-2xl p-8 text-left card-hover group border-t-2 border-t-purple-500"
+            >
+              <span className="text-4xl mb-3 block">✅</span>
+              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-python-yellow transition-colors">
+                Vérification — Examens blancs + Certification
+              </h3>
+              <p className="text-sm text-gray-400 mb-4">
+                QCM chronométrés + épreuves pratiques, avec seuils de validation.
+                Décrochez le badge 🌟 Certifié PyMaster.
+              </p>
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-purple-400">
+                Prouver mon niveau <ArrowRight size={16} />
+              </span>
+            </button>
           </div>
         </div>
       </section>

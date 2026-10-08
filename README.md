@@ -55,11 +55,11 @@
 
 | Fonctionnalité | Description |
 |----------------|-------------|
-| **12 Modules Complets** | De l'installation à la programmation avancée |
-| **60+ Leçons Détaillées** | Explications claires avec exemples |
-| **150+ Exemples de Code** | Commentés et expliqués ligne par ligne |
+| **10 Modules Complets** | De l'installation à l'automatisation professionnelle |
+| **35+ Leçons Détaillées** | Explications claires avec exemples |
+| **55+ Exemples de Code** | Commentés et expliqués ligne par ligne |
 | **Quiz Interactifs** | Validation des connaissances après chaque module |
-| **Projets Pratiques** | 10+ projets concrets à réaliser |
+| **13 Projets Guidés** | 5 projets de module + 8 projets standalone (jeux, outils, admin réseaux), pas à pas avec code complet |
 
 ### 💻 Éditeur de Code Intégré
 
@@ -201,7 +201,7 @@ pymaster/
 
 ## 📚 Modules de Formation
 
-### 🎯 Parcours Complet (12 Modules)
+### 🎯 Parcours Complet (10 Modules)
 
 | # | Module | Niveau | Durée | Description |
 |---|--------|--------|-------|-------------|
@@ -211,12 +211,12 @@ pymaster/
 | 4 | **Structures de Contrôle** | 🟢 Débutant | 6h | if/elif/else, for, while, break/continue |
 | 5 | **Fonctions** | 🟡 Intermédiaire | 8h | Définition, paramètres, return, lambda |
 | 6 | **Structures de Données** | 🟡 Intermédiaire | 10h | Listes, Tuples, Sets, Dictionnaires |
-| 7 | **Chaînes de Caractères** | 🟡 Intermédiaire | 6h | Méthodes, formatage, regex |
-| 8 | **Gestion des Fichiers** | 🟡 Intermédiaire | 6h | Lecture, écriture, CSV, JSON |
+| 7 | **Chaînes de Caractères** | 🟡 Intermédiaire | 6h | Méthodes, formatage, f-strings (intégré au module 2) |
+| 8 | **Gestion des Fichiers** | 🟡 Intermédiaire | 6h | Lecture, écriture, CSV, JSON (module 9) |
 | 9 | **Gestion des Erreurs** | 🟡 Intermédiaire | 4h | try/except, exceptions personnalisées |
-| 10 | **POO - Programmation Orientée Objet** | 🔴 Avancé | 12h | Classes, héritage, polymorphisme |
-| 11 | **Modules & Packages** | 🔴 Avancé | 6h | Import, pip, création de modules |
-| 12 | **Projets Avancés** | 🔴 Avancé | 20h | Applications complètes |
+| 10 | **POO - Programmation Orientée Objet** | 🔴 Avancé | 12h | Classes, héritage, polymorphisme, dataclasses |
+| 11 | **Fichiers et Données** | 🟡 Intermédiaire | 6h | open/with, CSV, JSON, pathlib |
+| 12 | **Modules, Packages et Environnement** | 🔴 Avancé | 5h | Imports, stdlib, pip, venv, argparse |
 
 ### 📊 Couverture des Sujets
 

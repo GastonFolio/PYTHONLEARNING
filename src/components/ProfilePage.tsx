@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { modules } from '../data/modules';
 import type { UserProgress } from '../data/storage';
 import { saveProgress, resetProgress } from '../data/storage';
@@ -13,6 +13,11 @@ export default function ProfilePage({ progress, onProgressUpdate }: ProfilePageP
   const [name, setName] = useState(progress.userName || '');
   const [saved, setSaved] = useState(false);
   const [showReset, setShowReset] = useState(false);
+
+  // Resynchronise le champ si la progression change (ex: après un reset)
+  useEffect(() => {
+    setName(progress.userName || '');
+  }, [progress.userName]);
 
   const totalLessons = modules.reduce((acc, m) => acc + m.lessons.length, 0);
   const totalQuizzes = modules.length;

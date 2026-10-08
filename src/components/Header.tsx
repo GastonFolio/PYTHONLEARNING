@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Menu, X, BookOpen, Trophy, Map, User, Terminal } from 'lucide-react';
+import { Menu, X, BookOpen, Trophy, Map, User, Terminal, Rocket, Zap, CheckCircle } from 'lucide-react';
 import type { UserProgress } from '../data/storage';
 
 interface HeaderProps {
@@ -41,6 +41,9 @@ export default function Header({ currentPage, onNavigate, progress }: HeaderProp
     { id: 'home', label: 'Accueil', icon: <BookOpen size={18} /> },
     { id: 'roadmap', label: 'Roadmap', icon: <Map size={18} /> },
     { id: 'modules', label: 'Modules', icon: <Terminal size={18} /> },
+    { id: 'intensive', label: 'Intensif', icon: <Zap size={18} /> },
+    { id: 'projects', label: 'Projets', icon: <Rocket size={18} /> },
+    { id: 'verification', label: 'Vérif', icon: <CheckCircle size={18} /> },
     { id: 'badges', label: 'Badges', icon: <Trophy size={18} /> },
     { id: 'profile', label: 'Profil', icon: <User size={18} /> },
   ];
