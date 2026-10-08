@@ -2442,6 +2442,94 @@ elif proposition < secret:
 else:
     print("🎉 Bravo !")`,
           validation: 'if'
+        },
+        {
+          id: 'step-4',
+          title: 'Étape 4: Boucle de jeu',
+          instruction: 'Enveloppez le code dans une boucle while qui continue tant que le nombre n\'est pas trouvé.',
+          hint: 'while proposition != secret: (n\'oubliez pas de redemander à chaque tour)',
+          starterCode: `import random
+secret = random.randint(1, 100)
+proposition = 0  # Valeur impossible au départ
+
+# Répétez tant que ce n'est pas trouvé
+while proposition ___ secret:
+    proposition = int(input("Devinez: "))
+
+    if proposition > secret:
+        print("C'est plus petit !")
+    elif proposition < secret:
+        print("C'est plus grand !")
+
+print("🎉 Bravo ! Vous avez trouvé !")`,
+          expectedCode: `while proposition != secret:
+    proposition = int(input("Devinez: "))`,
+          validation: 'while'
+        },
+        {
+          id: 'step-5',
+          title: 'Étape 5: Compter les tentatives',
+          instruction: 'Ajoutez un compteur qui s\'incrémente à chaque essai et affichez le score final.',
+          hint: 'tentatives = 0 avant la boucle, tentatives += 1 dedans',
+          starterCode: `import random
+secret = random.randint(1, 100)
+proposition = 0
+tentatives = ___  # Initialisez le compteur
+
+while proposition != secret:
+    proposition = int(input("Devinez: "))
+    tentatives ___ 1  # Incrémentez
+
+    if proposition > secret:
+        print("C'est plus petit !")
+    elif proposition < secret:
+        print("C'est plus grand !")
+
+print(f"🎉 Trouvé en {tentatives} tentatives !")`,
+          expectedCode: `tentatives = 0
+tentatives += 1`,
+          validation: 'tentatives += 1'
+        },
+        {
+          id: 'step-6',
+          title: 'Étape 6: Rejouer et record',
+          instruction: 'Ajoutez une boucle extérieure pour rejouer, et gardez le meilleur score (minimum de tentatives).',
+          hint: 'while True: ... if input("Rejouer ? (o/n)") != "o": break',
+          starterCode: `import random
+
+meilleur_score = None
+
+while True:
+    secret = random.randint(1, 100)
+    proposition = 0
+    tentatives = 0
+
+    while proposition != secret:
+        proposition = int(input("Devinez (1-100): "))
+        tentatives += 1
+        if proposition > secret:
+            print("C'est plus petit !")
+        elif proposition < secret:
+            print("C'est plus grand !")
+
+    print(f"🎉 Trouvé en {tentatives} tentatives !")
+
+    # Mettez à jour le record
+    if meilleur_score is None or tentatives < meilleur_score:
+        meilleur_score = tentatives
+        print(f"🏆 Nouveau record : {meilleur_score} !")
+    else:
+        print(f"Record à battre : {meilleur_score}")
+
+    # Demandez si on rejoue
+    rejouer = input("Rejouer ? (o/n) : ")
+    if rejouer != "o":
+        ___
+        print("👋 Merci d'avoir joué !")`,
+          expectedCode: `while True:
+    if rejouer != "o":
+        break`,
+          validation: 'break'
         }
       ]
     }
@@ -5368,6 +5456,214 @@ print(f"Rex est un Chat: {isinstance(rex, Chat)}")`,
           }
         ],
         exercises: []
+      },
+      {
+        id: 'l8-3',
+        title: 'Polymorphisme, Encapsulation et Dataclasses',
+        duration: '45 min',
+        content: `# Polymorphisme, Encapsulation et Dataclasses
+
+## 🔀 Polymorphisme
+
+Le **polymorphisme** signifie "plusieurs formes" : le même appel de méthode produit des comportements différents selon l'objet.
+
+\`\`\`python
+class Oiseau:
+    def voler(self):
+        return "Je vole avec des ailes"
+
+class Avion:
+    def voler(self):
+        return "Je vole avec des réacteurs"
+
+for objet in [Oiseau(), Avion()]:
+    print(objet.voler())  # Même appel, résultats différents
+\`\`\`
+
+### Duck typing 🦆
+En Python, on ne vérifie pas le type mais le **comportement** : "si ça vole comme un canard, c'est un canard".
+
+## 🔒 Encapsulation
+
+Protégez les attributs internes avec des conventions :
+
+- \`attribut\` — Public (accessible partout)
+- \`_attribut\` — Protégé (convention : usage interne)
+- \`__attribut\` — Privé (Python le renomme : *name mangling*)
+
+### @property — Getters élégants
+
+\`\`\`python
+class Cercle:
+    def __init__(self, rayon):
+        self._rayon = rayon
+    
+    @property
+    def rayon(self):
+        return self._rayon
+    
+    @rayon.setter
+    def rayon(self, valeur):
+        if valeur <= 0:
+            raise ValueError("Le rayon doit être positif")
+        self._rayon = valeur
+\`\`\`
+
+## 📦 Dataclasses
+
+Pour les classes qui stockent surtout des données, \`@dataclass\` génère \`__init__\`, \`__repr__\` et \`__eq__\` automatiquement.
+
+\`\`\`python
+from dataclasses import dataclass
+
+@dataclass
+class Etudiant:
+    nom: str
+    age: int
+    moyenne: float = 0.0  # Valeur par défaut
+\`\`\``,
+        codeExamples: [
+          {
+            title: 'Polymorphisme et duck typing',
+            code: `# Polymorphisme : même interface, comportements différents
+class Chien:
+    def parler(self):
+        return "Wouf !"
+
+class Chat:
+    def parler(self):
+        return "Miaou !"
+
+class Robot:
+    def parler(self):
+        return "Bip boup !"
+
+# Une seule fonction pour tous les types
+def faire_parler(objets):
+    for obj in objets:
+        print(obj.parler())
+
+faire_parler([Chien(), Chat(), Robot()])
+
+# Chaque classe a aussi sa spécificité
+class CompteBancaire:
+    def __init__(self, solde):
+        self._solde = solde  # Protégé par convention
+
+    @property
+    def solde(self):
+        """Lecture seule : pas de setter !"""
+        return self._solde
+
+    def deposer(self, montant):
+        if montant <= 0:
+            raise ValueError("Montant positif requis")
+        self._solde += montant
+
+compte = CompteBancaire(100)
+print(f"\\nSolde : {compte.solde} €")
+compte.deposer(50)
+print(f"Après dépôt : {compte.solde} €")`,
+            explanation: 'Le polymorphisme permet d\'écrire du code générique. @property expose un attribut protégé en lecture contrôlée.'
+          },
+          {
+            title: 'Dataclasses en pratique',
+            code: `from dataclasses import dataclass, field
+
+@dataclass
+class Produit:
+    """Une dataclass : __init__, __repr__ et __eq__ gratuits !"""
+    nom: str
+    prix: float
+    stock: int = 0
+    tags: list = field(default_factory=list)  # ⚠️ Jamais [] en défaut !
+
+    @property
+    def valeur_stock(self):
+        return round(self.prix * self.stock, 2)
+
+    def vendre(self, quantite):
+        if quantite > self.stock:
+            raise ValueError("Stock insuffisant !")
+        self.stock -= quantite
+        return round(self.prix * quantite, 2)
+
+# Création ultra-simple (pas de __init__ à écrire)
+p1 = Produit("Clavier", 49.99, stock=10, tags=["info", "promo"])
+p2 = Produit("Clavier", 49.99, stock=10, tags=["info", "promo"])
+
+print(p1)                    # __repr__ automatique
+print(f"Égaux : {p1 == p2}")  # __eq__ automatique
+print(f"Valeur du stock : {p1.valeur_stock} €")
+
+total = p1.vendre(3)
+print(f"Vente : {total} €, reste : {p1.stock}")`,
+            explanation: '@dataclass génère le code répétitif. Utilisez field(default_factory=...) pour les valeurs mutables. Combinez avec @property pour les calculs.'
+          }
+        ],
+        exercises: [
+          {
+            id: 'ex8-3-1',
+            title: 'Formes polymorphes',
+            instruction: 'Créez les classes Cercle et Rectangle avec chacun une méthode aire(). Puis écrivez une fonction aire_totale(formes) qui additionne les aires (polymorphisme).',
+            starterCode: `import math
+
+class Cercle:
+    def __init__(self, rayon):
+        self.rayon = rayon
+    def aire(self):
+        return math.pi * self.rayon ___ 2
+
+class Rectangle:
+    def __init__(self, largeur, hauteur):
+        self.largeur = largeur
+        self.hauteur = hauteur
+    def aire(self):
+        return self.___ * self.___
+
+def aire_totale(formes):
+    total = 0
+    for forme in formes:
+        total += forme.___()
+    return round(total, 2)
+
+# Tests
+formes = [Cercle(1), Rectangle(2, 3)]
+print(aire_totale(formes))  # 3.14 + 6 = 9.14`,
+            solution: `import math
+
+class Cercle:
+    def __init__(self, rayon):
+        self.rayon = rayon
+    def aire(self):
+        return math.pi * self.rayon ** 2
+
+class Rectangle:
+    def __init__(self, largeur, hauteur):
+        self.largeur = largeur
+        self.hauteur = hauteur
+    def aire(self):
+        return self.largeur * self.hauteur
+
+def aire_totale(formes):
+    total = 0
+    for forme in formes:
+        total += forme.aire()
+    return round(total, 2)
+
+formes = [Cercle(1), Rectangle(2, 3)]
+print(aire_totale(formes))`,
+            hints: [
+              'Puissance : ** (pas ^)',
+              'Rectangle : largeur × hauteur',
+              'Appelez forme.aire() sans connaître son type : c\'est le polymorphisme !'
+            ],
+            tests: [
+              { input: '', expected: '9.14', description: 'Aire totale = 3.14 + 6 = 9.14' }
+            ],
+            difficulty: 'medium'
+          }
+        ]
       }
     ],
     quiz: [
@@ -5391,18 +5687,1214 @@ print(f"Rex est un Chat: {isinstance(rex, Chat)}")`,
         options: ['__repr__', '__str__', '__print__', '__display__'],
         correctIndex: 1,
         explanation: '__str__ retourne la représentation "lisible" d\'un objet pour print() et str().'
+      },
+      {
+        id: 'q8-4',
+        question: 'Que permet le polymorphisme ?',
+        options: [
+          'Créer plusieurs constructeurs',
+          'Appeler la même méthode sur des objets différents avec des comportements adaptés',
+          'Copier une classe',
+          'Rendre un attribut privé'
+        ],
+        correctIndex: 1,
+        explanation: 'Le polymorphisme permet d\'utiliser une interface commune (ex: parler()) dont chaque classe fournit sa propre implémentation.'
+      },
+      {
+        id: 'q8-5',
+        question: 'Que génère automatiquement @dataclass ?',
+        options: [
+          'Uniquement le constructeur __init__',
+          '__init__, __repr__ et __eq__',
+          'Les getters et setters privés',
+          'La documentation de la classe'
+        ],
+        correctIndex: 1,
+        explanation: '@dataclass génère __init__, __repr__ et __eq__ à partir des attributs annotés, ce qui évite le code répétitif.'
       }
     ],
     project: {
       title: 'Système de Jeu RPG',
-      description: 'Créez un système de personnages avec héritage pour un jeu de rôle.',
+      description: 'Créez un système de personnages avec héritage pour un jeu de rôle : classe parente, héros spécialisés, combat polymorphe et sauvegarde.',
       objectives: [
         'Créer une classe parente Personnage',
         'Créer des classes enfants (Guerrier, Mage, Archer)',
         'Implémenter des méthodes communes et spécifiques',
-        'Utiliser le polymorphisme'
+        'Utiliser le polymorphisme pour un combat'
       ],
-      steps: []
+      steps: [
+        {
+          id: 'rpg-step-1',
+          title: 'Classe parente Personnage',
+          instruction: 'Créez la classe Personnage avec nom, points de vie (pv) et une méthode est_vivant().',
+          hint: 'est_vivant() retourne self.pv > 0',
+          starterCode: `class Personnage:
+    """Classe parente de tous les héros"""
+    def __init__(self, nom, pv):
+        self.nom = ___
+        self.pv = ___
+        self.pv_max = pv
+
+    def est_vivant(self):
+        return self.pv ___ 0
+
+    def __str__(self):
+        return f"{self.nom} ({self.pv}/{self.pv_max} PV)"
+
+# Test
+hero = Personnage("Novice", 50)
+print(hero)
+print("Vivant :", hero.est_vivant())`,
+          expectedCode: `class Personnage:
+    def __init__(self, nom, pv):
+        self.nom = nom
+        self.pv = pv`,
+          validation: 'self.nom = nom'
+        },
+        {
+          id: 'rpg-step-2',
+          title: 'Méthode attaquer de base',
+          instruction: 'Ajoutez une méthode attaquer(cible, degats) qui réduit les PV de la cible (sans passer sous 0).',
+          hint: 'cible.pv = max(0, cible.pv - degats)',
+          starterCode: `class Personnage:
+    def __init__(self, nom, pv):
+        self.nom = nom
+        self.pv = pv
+        self.pv_max = pv
+
+    def est_vivant(self):
+        return self.pv > 0
+
+    def attaquer(self, cible, degats):
+        cible.pv = ___(___, cible.pv - degats)
+        print(f"{self.nom} inflige {degats} dégâts à {cible.nom} !")
+
+    def __str__(self):
+        return f"{self.nom} ({self.pv}/{self.pv_max} PV)"
+
+# Test
+a = Personnage("A", 50)
+b = Personnage("B", 50)
+a.attaquer(b, 20)
+print(b)`,
+          expectedCode: `def attaquer(self, cible, degats):
+        cible.pv = max(0, cible.pv - degats)`,
+          validation: 'max(0'
+        },
+        {
+          id: 'rpg-step-3',
+          title: 'Guerrier et Mage (héritage)',
+          instruction: 'Créez Guerrier (bonus de dégâts au corps-à-corps) et Mage (attaque magique qui coûte du mana) héritant de Personnage.',
+          hint: 'class Guerrier(Personnage): + super().__init__(nom, pv)',
+          starterCode: `class Guerrier(___):
+    """Spécialiste du corps-à-corps : +5 dégâts"""
+    def __init__(self, nom):
+        super().__init__(nom, pv=120)
+
+    def attaquer(self, cible, degats):
+        super().attaquer(cible, degats + ___)
+
+class Mage(Personnage):
+    """Magie puissante mais limitée par le mana"""
+    def __init__(self, nom):
+        super().__init__(nom, pv=80)
+        self.mana = 50
+
+    def boule_de_feu(self, cible):
+        if self.mana < 10:
+            print(f"{self.nom} n'a plus de mana !")
+            return
+        self.mana -= 10
+        super().attaquer(cible, 25)
+
+# Tests
+g = Guerrier("Conan")
+m = Mage("Gandalf")
+g.attaquer(m, 10)
+print(m)
+m.boule_de_feu(g)
+print(g)`,
+          expectedCode: `class Guerrier(Personnage):
+    def __init__(self, nom):
+        super().__init__(nom, pv=120)`,
+          validation: 'super().__init__'
+        },
+        {
+          id: 'rpg-step-4',
+          title: 'Archer et soin',
+          instruction: 'Ajoutez la classe Archer (critiques aléatoires) et une méthode se_soigner() commune à tous.',
+          hint: 'import random : critique si random.random() < 0.3 → dégâts × 2',
+          starterCode: `import random
+
+class Archer(Personnage):
+    def __init__(self, nom):
+        super().__init__(nom, pv=100)
+
+    def attaquer(self, cible, degats):
+        if random.random() < 0.3:
+            print("🎯 Coup critique !")
+            degats = degats * ___
+        super().attaquer(cible, degats)
+
+# Méthode de soin à ajouter dans Personnage :
+# def se_soigner(self, montant):
+#     self.pv = min(self.pv_max, self.pv + montant)
+
+a = Archer("Legolas")
+print(a)
+a.attaquer(Personnage("Cible", 60), 15)`,
+          expectedCode: `degats = degats * 2`,
+          validation: '* 2'
+        },
+        {
+          id: 'rpg-step-5',
+          title: 'Combat polymorphe',
+          instruction: 'Écrivez une fonction combat(h1, h2) qui fait s\'affronter deux héros tour à tour jusqu\'à ce que l\'un tombe (polymorphisme : chaque classe attaque à sa façon).',
+          hint: 'while h1.est_vivant() and h2.est_vivant(): ... attaquer ... alterner',
+          starterCode: `import random
+
+def combat(hero1, hero2):
+    """Combat au tour par tour (polymorphe : marche avec n'importe quels Personnages)"""
+    tour = 1
+    while hero1.est_vivant() ___ hero2.est_vivant():
+        print(f"\\n--- Tour {tour} ---")
+        hero1.attaquer(hero2, random.randint(8, 15))
+        print(hero2)
+        if not hero2.est_vivant():
+            break
+        hero2.attaquer(hero1, random.randint(8, 15))
+        print(hero1)
+        tour += 1
+
+    gagnant = hero1 if hero1.est_vivant() else hero2
+    print(f"\\n🏆 {gagnant.nom} remporte le combat !")
+
+# Test (suppose Guerrier et Mage définis plus haut)
+# combat(Guerrier("Conan"), Mage("Gandalf"))`,
+          expectedCode: `while hero1.est_vivant() and hero2.est_vivant():`,
+          validation: 'while hero1.est_vivant()'
+        },
+        {
+          id: 'rpg-step-6',
+          title: 'Programme complet',
+          instruction: 'Assemblez tout : créez 3 héros, lancez un tournoi (demi-finales + finale) et affichez le champion. Copiez ce code dans rpg.py et exécutez-le avec python rpg.py.',
+          hint: 'Le gagnant d\'un combat affronte le 3e héros en finale.',
+          starterCode: `import random
+
+# (Copiez ici vos classes Personnage, Guerrier, Mage, Archer
+#  et votre fonction combat des étapes précédentes)
+
+def tournoi():
+    print("⚔️  TOURNOI RPG  ⚔️")
+    demi = combat(Guerrier("Conan"), Mage("Gandalf"))
+    # Note : faites retourner le gagnant par combat() :
+    # return hero1 if hero1.est_vivant() else hero2
+
+tournoi()`,
+          expectedCode: `def tournoi():`,
+          validation: 'def tournoi():'
+        }
+      ]
+    }
+  },
+
+  // ========================================
+  // MODULE 9 : FICHIERS ET DONNÉES
+  // ========================================
+  {
+    id: 'mod-9',
+    number: 9,
+    title: 'Fichiers et Données',
+    subtitle: 'Lire, écrire, CSV et JSON',
+    description: 'Apprenez à manipuler des fichiers : lire et écrire du texte, traiter des CSV avec le module csv, et échanger des données avec JSON. Indispensable pour l\'automatisation et l\'analyse de données.',
+    icon: '📁',
+    color: '#0ea5e9',
+    difficulty: 'Intermédiaire',
+    estimatedHours: 6,
+    lessons: [
+      {
+        id: 'l9-1',
+        title: 'Lire et Écrire des Fichiers',
+        duration: '40 min',
+        content: `# Lire et Écrire des Fichiers
+
+Les programmes utiles **persistent** leurs données dans des fichiers.
+
+## 📂 Ouvrir un fichier
+
+\`\`\`python
+fichier = open("notes.txt", "r")   # r = lecture (read)
+contenu = fichier.read()
+fichier.close()                    # ⚠️ Toujours fermer !
+\`\`\`
+
+## ✅ La bonne pratique : with
+
+Le bloc \`with\` **ferme automatiquement** le fichier, même en cas d'erreur :
+
+\`\`\`python
+with open("notes.txt", "r", encoding="utf-8") as f:
+    contenu = f.read()
+# Fichier fermé automatiquement ici
+\`\`\`
+
+## 📖 Modes d'ouverture
+
+| Mode | Signification |
+|------|---------------|
+| \`"r"\` | Lecture (défaut, erreur si absent) |
+| \`"w"\` | Écriture (**écrase** le fichier !) |
+| \`"a"\` | Ajout (**append**, à la fin) |
+| \`"r+"\` | Lecture + écriture |
+
+## 📖 Méthodes de lecture
+
+- \`read()\` — Tout le contenu (une string)
+- \`readline()\` — Une seule ligne
+- \`readlines()\` — Liste des lignes
+- \`for ligne in f:\` — Itération ligne par ligne (mémoire OK pour gros fichiers)
+
+## ✏️ Écriture
+
+\`\`\`python
+with open("sortie.txt", "w", encoding="utf-8") as f:
+    f.write("Bonjour\\n")
+    f.writelines(["Ligne 1\\n", "Ligne 2\\n"])
+\`\`\`
+
+## ⚠️ Toujours préciser encoding="utf-8"
+
+Sans cela, les accents (é, è, ç) peuvent produire des erreurs ou des caractères bizarres selon le système.`,
+        codeExamples: [
+          {
+            title: 'Journal de bord (écriture + lecture)',
+            code: `# 1. Écrire un journal
+with open("journal.txt", "w", encoding="utf-8") as f:
+    f.write("Lundi : J'ai appris les fichiers\\n")
+    f.write("Mardi : J'ai appris open() et with\\n")
+
+# 2. Ajouter une entrée (sans écraser !)
+with open("journal.txt", "a", encoding="utf-8") as f:
+    f.write("Mercredi : Je maîtrise with open()\\n")
+
+# 3. Lire tout d'un coup
+with open("journal.txt", "r", encoding="utf-8") as f:
+    contenu = f.read()
+print("--- Contenu complet ---")
+print(contenu)
+
+# 4. Lire ligne par ligne (idéal pour gros fichiers)
+print("--- Ligne par ligne ---")
+with open("journal.txt", "r", encoding="utf-8") as f:
+    for numero, ligne in enumerate(f, start=1):
+        print(f"{numero}. {ligne.strip()}")`,
+            explanation: 'Mode "w" écrase, "a" ajoute. with garantit la fermeture. enumerate(f, start=1) numérote les lignes proprement.'
+          },
+          {
+            title: 'Gérer l\'absence de fichier',
+            code: `# Lire un fichier qui n'existe peut-être pas
+try:
+    with open("config.txt", "r", encoding="utf-8") as f:
+        config = f.read()
+    print("Configuration chargée :")
+    print(config)
+except FileNotFoundError:
+    print("⚠️ config.txt introuvable, création avec des valeurs par défaut...")
+    with open("config.txt", "w", encoding="utf-8") as f:
+        f.write("theme=sombre\\nlangue=fr\\n")
+    print("✅ Fichier créé, relancez le programme !")
+except PermissionError:
+    print("⛔ Permission refusée : vérifiez les droits du fichier.")`,
+            explanation: 'FileNotFoundError est l\'exception typique des fichiers. On la combine avec try/except (module 7) pour des programmes robustes.'
+          }
+        ],
+        exercises: [
+          {
+            id: 'ex9-1-1',
+            title: 'Liste de courses persistante',
+            instruction: 'Écrivez les articles ["Pommes", "Lait", "Pain"] dans courses.txt (un par ligne), puis relisez le fichier et affichez chaque article numéroté.',
+            starterCode: `articles = ["Pommes", "Lait", "Pain"]
+
+# 1. Écriture (un article par ligne)
+with open("courses.txt", ___, encoding="utf-8") as f:
+    for article in articles:
+        f.write(article + ___)
+
+# 2. Lecture et affichage numéroté
+with open("courses.txt", "r", encoding="utf-8") as f:
+    for numero, ligne in enumerate(f, start=___):
+        print(f"{numero}. {ligne.strip()}")`,
+            solution: `articles = ["Pommes", "Lait", "Pain"]
+
+with open("courses.txt", "w", encoding="utf-8") as f:
+    for article in articles:
+        f.write(article + "\\n")
+
+with open("courses.txt", "r", encoding="utf-8") as f:
+    for numero, ligne in enumerate(f, start=1):
+        print(f"{numero}. {ligne.strip()}")`,
+            hints: [
+              'Écriture = mode "w"',
+              'Chaque ligne se termine par "\\n"',
+              'La numérotation commence à 1'
+            ],
+            tests: [
+              { input: '', expected: '1. Pommes', description: 'Premier article numéroté' },
+              { input: '', expected: '3. Pain', description: 'Troisième article numéroté' }
+            ],
+            difficulty: 'easy'
+          }
+        ]
+      },
+      {
+        id: 'l9-2',
+        title: 'Fichiers CSV',
+        duration: '40 min',
+        content: `# Fichiers CSV
+
+Le **CSV** (Comma-Separated Values) est le format tableur universel : Excel, Google Sheets et les exports de données l'utilisent.
+
+\`\`\`
+nom,prix,stock
+Clavier,49.99,10
+Souris,19.99,25
+\`\`\`
+
+## 📖 Lire un CSV : module csv
+
+\`\`\`python
+import csv
+
+with open("produits.csv", "r", encoding="utf-8") as f:
+    lecteur = csv.DictReader(f)  # Chaque ligne = un dict !
+    for ligne in lecteur:
+        print(ligne["nom"], ligne["prix"])
+\`\`\`
+
+- \`csv.reader\` — Lignes = listes
+- \`csv.DictReader\` — Lignes = dictionnaires (clés = en-têtes) ✅ recommandé
+
+## ✏️ Écrire un CSV
+
+\`\`\`python
+import csv
+
+with open("sortie.csv", "w", encoding="utf-8", newline="") as f:
+    champs = ["nom", "prix", "stock"]
+    writer = csv.DictWriter(f, fieldnames=champs)
+    writer.writeheader()
+    writer.writerow({"nom": "Écran", "prix": 199.99, "stock": 5})
+\`\`\`
+
+## ⚠️ newline=""
+
+À l'écriture d'un CSV sous Windows, **toujours** passer \`newline=""\` sinon des lignes vides parasites apparaissent.
+
+## 🔢 Convertir les types
+
+Tout est lu comme du **texte** : convertissez explicitement !
+
+\`\`\`python
+prix = float(ligne["prix"])
+stock = int(ligne["stock"])
+\`\`\``,
+        codeExamples: [
+          {
+            title: 'Analyser un fichier CSV',
+            code: `import csv
+
+# 1. Créer un fichier d'exemple
+with open("ventes.csv", "w", encoding="utf-8", newline="") as f:
+    w = csv.DictWriter(f, fieldnames=["produit", "prix", "quantite"])
+    w.writeheader()
+    w.writerow({"produit": "Clavier", "prix": 49.99, "quantite": 2})
+    w.writerow({"produit": "Souris", "prix": 19.99, "quantite": 5})
+    w.writerow({"produit": "Écran", "prix": 199.99, "quantite": 1})
+
+# 2. Lire et analyser
+total = 0
+nb_articles = 0
+with open("ventes.csv", "r", encoding="utf-8") as f:
+    for ligne in csv.DictReader(f):
+        prix = float(ligne["prix"])
+        quantite = int(ligne["quantite"])
+        sous_total = prix * quantite
+        total += sous_total
+        nb_articles += quantite
+        print(f"{ligne['produit']:<10} {quantite} × {prix:.2f} € = {sous_total:.2f} €")
+
+print(f"\\n🧾 Total : {total:.2f} € pour {nb_articles} articles")`,
+            explanation: 'DictReader transforme chaque ligne en dict. On convertit prix/quantité en nombres pour calculer le chiffre d\'affaires.'
+          }
+        ],
+        exercises: [
+          {
+            id: 'ex9-2-1',
+            title: 'Compter les lignes d\'un CSV',
+            instruction: 'Lisez ventes.csv (créé dans l\'exemple) et affichez le nombre de produits différents (lignes de données, sans l\'en-tête).',
+            starterCode: `import csv
+
+with open("ventes.csv", "r", encoding="utf-8") as f:
+    lecteur = csv.___(f)
+    lignes = list(lecteur)
+    print(f"Nombre de produits : {len(___)}")`,
+            solution: `import csv
+
+with open("ventes.csv", "r", encoding="utf-8") as f:
+    lecteur = csv.DictReader(f)
+    lignes = list(lecteur)
+    print(f"Nombre de produits : {len(lignes)}")`,
+            hints: [
+              'DictReader utilise la première ligne comme en-têtes',
+              'list(lecteur) ne contient que les données'
+            ],
+            tests: [
+              { input: '', expected: 'Nombre de produits', description: 'Affiche le compteur' }
+            ],
+            difficulty: 'easy'
+          }
+        ]
+      },
+      {
+        id: 'l9-3',
+        title: 'JSON et Chemins (pathlib)',
+        duration: '40 min',
+        content: `# JSON et Chemins (pathlib)
+
+## 📦 JSON — Le format d'échange universel
+
+**JSON** (JavaScript Object Notation) ressemble aux dicts Python. Idéal pour configs et APIs.
+
+\`\`\`python
+import json
+
+# Python -> JSON (sauvegarder)
+contact = {"nom": "Alice", "tel": "0123456789", "tags": ["ami", "travail"]}
+with open("contact.json", "w", encoding="utf-8") as f:
+    json.dump(contact, f, ensure_ascii=False, indent=2)
+
+# JSON -> Python (charger)
+with open("contact.json", "r", encoding="utf-8") as f:
+    data = json.load(f)
+print(data["nom"])  # Alice
+\`\`\`
+
+| Fonction | Sens |
+|----------|------|
+| \`json.dump(obj, f)\` | Python → fichier |
+| \`json.load(f)\` | Fichier → Python |
+| \`json.dumps(obj)\` | Python → string |
+| \`json.loads(s)\` | String → Python |
+
+## 📁 pathlib — Les chemins modernes
+
+Oubliez \`os.path.join\` : \`pathlib.Path\` est lisible et multi-plateforme.
+
+\`\`\`python
+from pathlib import Path
+
+dossier = Path("donnees")
+dossier.mkdir(exist_ok=True)              # Crée le dossier
+
+fichier = dossier / "notes.txt"           # / concatène les chemins !
+fichier.write_text("Bonjour", encoding="utf-8")
+print(fichier.read_text(encoding="utf-8"))
+
+print(fichier.exists())  # True
+print(fichier.suffix)    # .txt
+for enfant in dossier.iterdir():
+    print(enfant.name)
+\`\`\``,
+        codeExamples: [
+          {
+            title: 'Carnet d\'adresses JSON complet',
+            code: `import json
+from pathlib import Path
+
+fichier = Path("contacts.json")
+
+# 1. Charger ou initialiser
+if fichier.exists():
+    contacts = json.loads(fichier.read_text(encoding="utf-8"))
+else:
+    contacts = []
+
+# 2. Ajouter des contacts (dicts dans une liste)
+contacts.append({"nom": "Alice", "tel": "0102030405", "ville": "Paris"})
+contacts.append({"nom": "Bob", "tel": "0607080910", "ville": "Lyon"})
+
+# 3. Sauvegarder (indent=2 = lisible, ensure_ascii=False = accents OK)
+fichier.write_text(
+    json.dumps(contacts, ensure_ascii=False, indent=2),
+    encoding="utf-8"
+)
+
+# 4. Relire et rechercher
+donnees = json.loads(fichier.read_text(encoding="utf-8"))
+print(f"📇 {len(donnees)} contacts enregistrés")
+for c in donnees:
+    print(f"  • {c['nom']} ({c['ville']}) : {c['tel']}")
+
+# 5. Rechercher "ali" (insensible à la casse)
+recherche = "ali"
+trouves = [c for c in donnees if recherche in c["nom"].lower()]
+print(f"\\n🔍 Recherche '{recherche}' : {len(trouves)} résultat(s)")`,
+            explanation: 'Liste de dicts + JSON = mini base de données. pathlib simplifie les chemins. La compréhension de liste filtre la recherche.'
+          }
+        ],
+        exercises: [
+          {
+            id: 'ex9-3-1',
+            title: 'Sauvegarder ses préférences',
+            instruction: 'Créez un dict prefs avec theme="sombre" et langue="fr", sauvegardez-le en JSON dans prefs.json, rechargez-le et affichez le thème.',
+            starterCode: `import json
+
+prefs = {"theme": "sombre", "langue": "fr"}
+
+# Sauvegarde
+with open("prefs.json", ___, encoding="utf-8") as f:
+    json.___(prefs, f, ensure_ascii=False, indent=2)
+
+# Rechargement
+with open("prefs.json", "r", encoding="utf-8") as f:
+    charge = json.___(f)
+
+print(f"Thème : {charge[___]}")`,
+            solution: `import json
+
+prefs = {"theme": "sombre", "langue": "fr"}
+
+with open("prefs.json", "w", encoding="utf-8") as f:
+    json.dump(prefs, f, ensure_ascii=False, indent=2)
+
+with open("prefs.json", "r", encoding="utf-8") as f:
+    charge = json.load(f)
+
+print(f"Thème : {charge['theme']}")`,
+            hints: [
+              'Écriture = mode "w"',
+              'dump = vers fichier, load = depuis fichier',
+              'On accède avec la clé "theme"'
+            ],
+            tests: [
+              { input: '', expected: 'sombre', description: 'Le thème rechargé vaut "sombre"' }
+            ],
+            difficulty: 'easy'
+          }
+        ]
+      }
+    ],
+    quiz: [
+      {
+        id: 'q9-1',
+        question: 'Pourquoi utiliser "with open(...)" ?',
+        options: [
+          'C\'est plus rapide à écrire',
+          'Le fichier est fermé automatiquement, même en cas d\'erreur',
+          'On peut ouvrir plusieurs fichiers',
+          'Ça compresse le fichier'
+        ],
+        correctIndex: 1,
+        explanation: 'with garantit la fermeture du fichier à la sortie du bloc, y compris si une exception survient.'
+      },
+      {
+        id: 'q9-2',
+        question: 'Que fait le mode "w" ?',
+        options: [
+          'Lit le fichier',
+          'Ajoute à la fin sans écraser',
+          'Écrase le fichier existant (ou le crée)',
+          'Renomme le fichier'
+        ],
+        correctIndex: 2,
+        explanation: '"w" (write) écrase tout le contenu existant. Utilisez "a" (append) pour ajouter sans écraser.'
+      },
+      {
+        id: 'q9-3',
+        question: 'Que retourne csv.DictReader pour chaque ligne ?',
+        options: ['Une liste', 'Un tuple', 'Un dictionnaire (clés = en-têtes)', 'Une chaîne'],
+        correctIndex: 2,
+        explanation: 'DictReader utilise la première ligne comme clés et retourne chaque ligne sous forme de dict.'
+      },
+      {
+        id: 'q9-4',
+        question: 'Quelle fonction convertit un dict Python en fichier JSON ?',
+        options: ['json.load', 'json.dump', 'json.parse', 'json.write'],
+        correctIndex: 1,
+        explanation: 'json.dump(obj, f) écrit vers un fichier ; json.load(f) lit depuis un fichier. (dumps/loads = versions string.)'
+      },
+      {
+        id: 'q9-5',
+        question: 'Avec pathlib, comment joindre un dossier et un nom de fichier ?',
+        options: ['dossier + "/" + nom', 'dossier / nom', 'dossier.join(nom)', 'dossier.concat(nom)'],
+        correctIndex: 1,
+        explanation: "L'opérateur / est surchargé par Path : dossier / 'fichier.txt' construit un chemin multi-plateforme."
+      }
+    ],
+    project: {
+      title: 'Analyseur de Dépenses CSV',
+      description: 'Créez un analyseur de budget qui lit un CSV de dépenses, calcule les totaux par catégorie et génère un rapport.',
+      objectives: [
+        'Lire un fichier CSV avec DictReader',
+        'Agréger des données avec des dictionnaires',
+        'Calculer totaux, moyennes et maximums',
+        'Générer un rapport texte formaté'
+      ],
+      steps: [
+        {
+          id: 'csv-step-1',
+          title: 'Créer le fichier de dépenses',
+          instruction: 'Créez depenses.csv avec les colonnes date, categorie, description, montant et 6 lignes d\'exemple.',
+          hint: 'csv.DictWriter + writeheader() + writerow()',
+          starterCode: `import csv
+
+depenses = [
+    {"date": "2024-01-05", "categorie": "Alimentation", "description": "Courses", "montant": 85.50},
+    {"date": "2024-01-06", "categorie": "Transport", "description": "Navigo", "montant": 86.40},
+    {"date": "2024-01-08", "categorie": "Alimentation", "description": "Boulangerie", "montant": 12.30},
+    # Ajoutez 3 lignes : Logement, Loisirs, Alimentation
+    ___,
+    ___,
+    ___,
+]
+
+with open("depenses.csv", "w", encoding="utf-8", newline="") as f:
+    w = csv.DictWriter(f, fieldnames=["date", "categorie", "description", "montant"])
+    w.writeheader()
+    w.writerows(depenses)
+print("✅ depenses.csv créé")`,
+          expectedCode: `w.writerows(depenses)`,
+          validation: 'writerows'
+        },
+        {
+          id: 'csv-step-2',
+          title: 'Charger et convertir',
+          instruction: 'Lisez le CSV et construisez une liste de dicts avec montant converti en float.',
+          hint: 'float(ligne["montant"]) pour chaque ligne de DictReader',
+          starterCode: `import csv
+
+depenses = []
+with open("depenses.csv", "r", encoding="utf-8") as f:
+    for ligne in csv.DictReader(f):
+        depenses.append({
+            "date": ligne["date"],
+            "categorie": ligne["categorie"],
+            "description": ligne["description"],
+            "montant": ___(ligne["montant"])
+        })
+
+print(f"📥 {len(depenses)} dépenses chargées")
+print(depenses[0])`,
+          expectedCode: `"montant": float(ligne["montant"])`,
+          validation: 'float(ligne'
+        },
+        {
+          id: 'csv-step-3',
+          title: 'Total par catégorie',
+          instruction: 'Agrégez les montants par catégorie dans un dictionnaire.',
+          hint: 'totaux = {} puis totaux[cat] = totaux.get(cat, 0) + montant',
+          starterCode: `totaux = {}
+for d in depenses:
+    cat = d["categorie"]
+    totaux[cat] = totaux.get(cat, ___) + d["montant"]
+
+for cat, total in totaux.items():
+    print(f"{cat:<15} : {total:.2f} €")`,
+          expectedCode: `totaux.get(cat, 0) + d["montant"]`,
+          validation: '.get(cat, 0)'
+        },
+        {
+          id: 'csv-step-4',
+          title: 'Statistiques globales',
+          instruction: 'Calculez le total général, la moyenne par dépense et la plus grosse dépense (avec sa description).',
+          hint: 'max(depenses, key=lambda d: d["montant"])',
+          starterCode: `total = sum(d["montant"] for d in depenses)
+moyenne = total / len(depenses)
+plus_grosse = max(depenses, key=lambda d: ___)
+
+print(f"💰 Total   : {total:.2f} €")
+print(f"📊 Moyenne : {moyenne:.2f} €")
+print(f"🔝 Max     : {plus_grosse['description']} ({plus_grosse['montant']:.2f} €)")`,
+          expectedCode: `max(depenses, key=lambda d: d["montant"])`,
+          validation: 'max(depenses'
+        },
+        {
+          id: 'csv-step-5',
+          title: 'Trier et filtrer',
+          instruction: 'Affichez les dépenses triées par montant décroissant, puis filtrez celles > 50 € avec une compréhension.',
+          hint: 'sorted(depenses, key=..., reverse=True) et [d for d in depenses if ...]',
+          starterCode: `triees = sorted(depenses, key=lambda d: d["montant"], reverse=___)
+print("--- Tri décroissant ---")
+for d in triees:
+    print(f"{d['montant']:>8.2f} €  {d['categorie']:<12} {d['description']}")
+
+grosses = [d for d in depenses if d["montant"] ___ 50]
+print(f"\\n⚠️ {len(grosses)} dépense(s) au-dessus de 50 €")`,
+          expectedCode: `reverse=True`,
+          validation: 'reverse=True'
+        },
+        {
+          id: 'csv-step-6',
+          title: 'Générer le rapport',
+          instruction: 'Écrivez un rapport formaté dans rapport.txt : total, moyenne, détail par catégorie trié, et top 3 des dépenses.',
+          hint: 'Ouvrez rapport.txt en mode "w" et écrivez avec f.write() + f-strings',
+          starterCode: `with open("rapport.txt", ___, encoding="utf-8") as f:
+    f.write("📊 RAPPORT DE DÉPENSES\\n")
+    f.write("=" * 30 + "\\n")
+    f.write(f"Total   : {total:.2f} €\\n")
+    f.write(f"Moyenne : {moyenne:.2f} €\\n\\n")
+    f.write("Par catégorie :\\n")
+    for cat in sorted(totaux, key=totaux.get, reverse=True):
+        f.write(f"  - {cat:<12}: {totaux[cat]:.2f} €\\n")
+
+print("✅ Rapport écrit dans rapport.txt")`,
+          expectedCode: `open("rapport.txt", "w"`,
+          validation: '"w"'
+        }
+      ]
+    }
+  },
+
+  // ========================================
+  // MODULE 10 : MODULES, PACKAGES ET ENVIRONNEMENT
+  // ========================================
+  {
+    id: 'mod-10',
+    number: 10,
+    title: 'Modules, Packages et Environnement',
+    subtitle: 'Organiser et distribuer son code',
+    description: 'Passez au niveau professionnel : imports avancés, bibliothèque standard (datetime, collections, pathlib), pip et environnements virtuels, et structuration d\'un vrai projet.',
+    icon: '📦',
+    color: '#a855f7',
+    difficulty: 'Avancé',
+    estimatedHours: 5,
+    lessons: [
+      {
+        id: 'l10-1',
+        title: 'Imports et Bibliothèque Standard',
+        duration: '40 min',
+        content: `# Imports et Bibliothèque Standard
+
+## 📥 Les formes d'import
+
+\`\`\`python
+import math                    # Module entier
+import math as m               # Avec alias
+from math import sqrt, pi      # Noms précis
+from math import *             # ⚠️ Tout importer (à éviter)
+\`\`\`
+
+**Règle d'or** : importez explicitement ce dont vous avez besoin. \`from x import *\` masque l'origine des noms et crée des collisions.
+
+## 🧰 La bibliothèque standard (batteries incluses)
+
+| Module | Usage |
+|--------|-------|
+| \`math\` | Fonctions mathématiques |
+| \`random\` | Aléatoire |
+| \`datetime\` | Dates et heures |
+| \`collections\` | Counter, defaultdict, deque |
+| \`itertools\` | Combinaisons, permutations |
+| \`pathlib\` | Chemins de fichiers |
+| \`json\` / \`csv\` | Formats de données |
+| \`re\` | Expressions régulières |
+| \`statistics\` | Moyenne, médiane... |
+
+## 📅 datetime en bref
+
+\`\`\`python
+from datetime import date, datetime, timedelta
+
+aujourdhui = date.today()              # 2026-10-01
+maintenant = datetime.now()
+demain = aujourdhui + timedelta(days=1)
+print(aujourdhui.strftime("%d/%m/%Y"))  # 01/10/2026
+\`\`\`
+
+## 🔢 collections.Counter
+
+Comptez des occurrences en une ligne :
+
+\`\`\`python
+from collections import Counter
+votes = ["a", "b", "a", "c", "a"]
+print(Counter(votes))  # Counter({'a': 3, 'b': 1, 'c': 1})
+\`\`\``,
+        codeExamples: [
+          {
+            title: 'Boîte à outils datetime + collections',
+            code: `from datetime import date, timedelta
+from collections import Counter, defaultdict
+
+# 1. Dates : échéances
+aujourdhui = date.today()
+print(f"Aujourd'hui : {aujourdhui.strftime('%d/%m/%Y')}")
+for jours, label in [(7, "hebdo"), (30, "mensuel")]:
+    echeance = aujourdhui + timedelta(days=jours)
+    print(f"Rapport {label} : {echeance.strftime('%d/%m/%Y')}")
+
+# 2. Counter : analyse de texte
+texte = "le python est génial et le python est partout"
+mots = texte.split()
+freq = Counter(mots)
+print(f"\\nTop 2 des mots : {freq.most_common(2)}")
+
+# 3. defaultdict : regrouper sans tester les clés
+notes = [("Alice", 15), ("Bob", 12), ("Alice", 18)]
+par_eleve = defaultdict(list)
+for nom, note in notes:
+    par_eleve[nom].append(note)
+print(f"\\nNotes : {dict(par_eleve)}")
+
+# 4. statistics : un résumé en 3 lignes
+import statistics
+scores = [12, 15, 9, 18, 14]
+print(f"Moyenne : {statistics.mean(scores):.1f}")
+print(f"Médiane : {statistics.median(scores)}")`,
+            explanation: 'datetime gère dates et délais, Counter compte, defaultdict regroupe sans KeyError, statistics résume. Quatre modules qui couvrent 80% des besoins courants.'
+          }
+        ],
+        exercises: [
+          {
+            id: 'ex10-1-1',
+            title: 'Jours restants',
+            instruction: 'Calculez le nombre de jours restants avant le 1er janvier prochain avec datetime et timedelta.',
+            starterCode: `from datetime import date
+
+aujourdhui = date.today()
+nouvel_an = date(aujourdhui.year + 1, ___, ___)
+
+reste = (nouvel_an - aujourdhui).days
+print(f"J-{reste} avant le Nouvel An ! 🎆")`,
+            solution: `from datetime import date
+
+aujourdhui = date.today()
+nouvel_an = date(aujourdhui.year + 1, 1, 1)
+
+reste = (nouvel_an - aujourdhui).days
+print(f"J-{reste} avant le Nouvel An ! 🎆")`,
+            hints: [
+              '1er janvier = mois 1, jour 1',
+              'Soustraire deux dates donne un timedelta (.days)'
+            ],
+            tests: [
+              { input: '', expected: 'Nouvel An', description: 'Affiche le compte à rebours' }
+            ],
+            difficulty: 'easy'
+          }
+        ]
+      },
+      {
+        id: 'l10-2',
+        title: 'pip, venv et Projets Propres',
+        duration: '45 min',
+        content: `# pip, venv et Projets Propres
+
+## 📦 pip — Le gestionnaire de paquets
+
+\`\`\`bash
+pip install requests        # Installer
+pip install pandas==2.0.0   # Version précise
+pip list                    # Lister les paquets
+pip show requests            # Détails d'un paquet
+pip freeze > requirements.txt  # Figer les dépendances
+pip install -r requirements.txt  # Réinstaller à l'identique
+\`\`\`
+
+## 🌿 venv — Environnements virtuels
+
+**Un projet = un environnement isolé.** Fini les conflits de versions !
+
+\`\`\`bash
+python -m venv .venv           # Créer
+source .venv/bin/activate      # Activer (Linux/macOS)
+.venv\\\\Scripts\\\\activate     # Activer (Windows)
+pip install requests
+deactivate                     # Quitter
+\`\`\`
+
+## 📁 Structure d'un projet propre
+
+\`\`\`
+mon_projet/
+├── .venv/              # Environnement (jamais commité !)
+├── src/
+│   ├── __init__.py
+│   ├── main.py
+│   └── utils.py
+├── tests/
+│   └── test_utils.py
+├── requirements.txt
+└── README.md
+\`\`\`
+
+## 🏁 if __name__ == "__main__"
+
+Ce bloc ne s'exécute que si le fichier est **lancé directement**, pas importé :
+
+\`\`\`python
+# utils.py
+def saluer(nom):
+    return f"Bonjour {nom} !"
+
+if __name__ == "__main__":
+    print(saluer("Test"))  # Exécuté seulement en direct
+\`\`\`
+
+\`\`\`python
+# main.py
+from utils import saluer  # Le bloc __main__ de utils.py NE tourne pas
+print(saluer("Alice"))
+\`\`\``,
+        codeExamples: [
+          {
+            title: 'Créer son propre module',
+            code: `# Fichier : stats_perso.py (votre module)
+"""Petit module de statistiques personnelles."""
+
+def moyenne(nombres):
+    """Retourne la moyenne d'une liste de nombres."""
+    if not nombres:
+        raise ValueError("Liste vide !")
+    return sum(nombres) / len(nombres)
+
+def max_position(nombres):
+    """Retourne (valeur max, sa position)."""
+    top = max(nombres)
+    return top, nombres.index(top)
+
+PI_PRECIS = 3.141592653589793
+
+if __name__ == "__main__":
+    # Tests rapides quand on lance le module directement
+    print(moyenne([10, 20, 30]))   # 20.0
+    print(max_position([5, 9, 3]))  # (9, 1)
+
+# Fichier : main.py (utilise le module)
+# from stats_perso import moyenne, max_position
+# print(moyenne([4, 8, 15, 16, 23, 42]))`,
+            explanation: 'Un module = un fichier .py. Le bloc __main__ sert de zone de test intégrée. Les docstrings documentent chaque fonction.'
+          }
+        ],
+        exercises: [
+          {
+            id: 'ex10-2-1',
+            title: 'Mon premier module',
+            instruction: 'Transformez ces fonctions en module : ajoutez les docstrings manquantes et un bloc __main__ qui teste convertir_celsius(100).',
+            starterCode: `def convertir_celsius(fahrenheit):
+    ___
+    return (fahrenheit - 32) * 5 / 9
+
+if ___ == "___":
+    print(convertir_celsius(100))  # 37.78`,
+            solution: `def convertir_celsius(fahrenheit):
+    """Convertit des Fahrenheit en Celsius."""
+    return (fahrenheit - 32) * 5 / 9
+
+if __name__ == "__main__":
+    print(convertir_celsius(100))`,
+            hints: [
+              'Docstring entre triples guillemets sous def',
+              'Le test canonique : if __name__ == "__main__":'
+            ],
+            tests: [
+              { input: '', expected: '37', description: '100°F ≈ 37.7°C affiché' }
+            ],
+            difficulty: 'easy'
+          }
+        ]
+      }
+    ],
+    quiz: [
+      {
+        id: 'q10-1',
+        question: 'Pourquoi éviter "from module import *" ?',
+        options: [
+          'C\'est plus lent',
+          'Ça masque l\'origine des noms et risque des collisions',
+          'Ça ne marche qu\'avec la stdlib',
+          'Ça double la mémoire'
+        ],
+        correctIndex: 1,
+        explanation: 'L\'import étoile injecte tous les noms sans préfixe : on ne sait plus d\'où ils viennent et deux modules peuvent écraser les mêmes noms.'
+      },
+      {
+        id: 'q10-2',
+        question: 'À quoi sert un environnement virtuel (venv) ?',
+        options: [
+          'À accélérer Python',
+          'À isoler les dépendances d\'un projet pour éviter les conflits de versions',
+          'À compiler le code',
+          'À chiffrer le code source'
+        ],
+        correctIndex: 1,
+        explanation: 'Chaque projet a son .venv avec ses propres versions de paquets : les projets ne se perturbent plus entre eux.'
+      },
+      {
+        id: 'q10-3',
+        question: 'Quand le bloc "if __name__ == \\"__main__\\"" s\'exécute-t-il ?',
+        options: [
+          'Toujours',
+          'Seulement quand le fichier est lancé directement (pas importé)',
+          'Seulement dans le REPL',
+          'Jamais, c\'est un commentaire'
+        ],
+        correctIndex: 1,
+        explanation: '__name__ vaut "__main__" uniquement lors d\'une exécution directe. Lors d\'un import, il vaut le nom du module.'
+      },
+      {
+        id: 'q10-4',
+        question: 'Que fait Counter(["a", "b", "a"]) ?',
+        options: [
+          'Compte le nombre d\'éléments : 3',
+          'Retourne {"a": 2, "b": 1}',
+          'Retourne ["a", "b"]',
+          'Lève une erreur'
+        ],
+        correctIndex: 1,
+        explanation: 'Counter (module collections) compte les occurrences : {"a": 2, "b": 1}.'
+      }
+    ],
+    project: {
+      title: 'Organisateur de Fichiers',
+      description: 'Créez un script d\'automatisation qui range un dossier en vrac : tri par extension, renommage et rapport, avec pathlib.',
+      objectives: [
+        'Parcourir un dossier avec pathlib',
+        'Trier des fichiers par extension',
+        'Créer des dossiers et déplacer des fichiers',
+        'Générer un rapport d\'organisation'
+      ],
+      steps: [
+        {
+          id: 'org-step-1',
+          title: 'Explorer avec pathlib',
+          instruction: 'Listez tous les fichiers d\'un dossier "vrac" avec Path.iterdir() en ignorant les dossiers.',
+          hint: 'p.is_file() pour filtrer, p.suffix pour l\'extension',
+          starterCode: `from pathlib import Path
+
+# Préparez un dossier de test avec quelques fichiers
+vrac = Path("vrac")
+vrac.mkdir(exist_ok=True)
+(vrac / "photo.jpg").write_text("img", encoding="utf-8")
+(vrac / "cours.pdf").write_text("pdf", encoding="utf-8")
+(vrac / "notes.txt").write_text("txt", encoding="utf-8")
+
+# Listez uniquement les fichiers
+fichiers = [p for p in vrac.iterdir() if p.___()]
+for f in fichiers:
+    print(f"{f.name:<15} extension : {f.___}")`,
+          expectedCode: `if p.is_file()`,
+          validation: 'is_file()'
+        },
+        {
+          id: 'org-step-2',
+          title: 'Table de tri par extension',
+          instruction: 'Créez un dict qui associe chaque extension à un dossier de destination (Images, Documents, Textes, Autres).',
+          hint: 'REGLES = {".jpg": "Images", ...} + fonction dossier_pour(suffix)',
+          starterCode: `REGLES = {
+    ".jpg": "Images", ".png": "Images",
+    ".pdf": "Documents",
+    ".txt": "Textes", ".md": "Textes",
+}
+
+def dossier_pour(suffix):
+    """Retourne le dossier de destination pour une extension."""
+    return REGLES.get(suffix.lower(), ___)
+
+print(dossier_pour(".jpg"))   # Images
+print(dossier_pour(".zip"))   # Autres`,
+          expectedCode: `REGLES.get(suffix.lower(), "Autres")`,
+          validation: '"Autres"'
+        },
+        {
+          id: 'org-step-3',
+          title: 'Ranger les fichiers',
+          instruction: 'Pour chaque fichier : créez le dossier de destination et déplacez le fichier avec Path.rename().',
+          hint: 'dest = vrac / dossier ; dest.mkdir(exist_ok=True) ; f.rename(dest / f.name)',
+          starterCode: `ranges = 0
+for f in vrac.iterdir():
+    if not f.is_file():
+        continue
+    dest = vrac / dossier_pour(f.suffix)
+    dest.mkdir(___=True)          # Crée si besoin
+    f.rename(dest / ___)          # Déplace
+    ranges += 1
+    print(f"📦 {f.name} → {dest.name}/")
+
+print(f"\\n✅ {ranges} fichier(s) rangé(s)")`,
+          expectedCode: `f.rename(dest / f.name)`,
+          validation: 'rename('
+        },
+        {
+          id: 'org-step-4',
+          title: 'Mode simulation (dry-run)',
+          instruction: 'Ajoutez un paramètre simuler=True qui affiche ce qui serait fait SANS rien déplacer (sécurité avant exécution réelle).',
+          hint: 'if simuler: print(...) else: déplacer',
+          starterCode: `def organiser(dossier, simuler=True):
+    """Range les fichiers. Si simuler=True, affiche seulement le plan."""
+    dossier = Path(dossier)
+    for f in dossier.iterdir():
+        if not f.is_file():
+            continue
+        dest = dossier / dossier_pour(f.suffix)
+        if simuler:
+            print(f"[SIMULATION] {f.name} → {dest.name}/")
+        else:
+            dest.mkdir(exist_ok=True)
+            f.rename(dest / f.name)
+            print(f"[RANGÉ] {f.name} → {dest.name}/")
+
+# Test sans risque :
+organiser("vrac", simuler=___)`,
+          expectedCode: `organiser("vrac", simuler=True)`,
+          validation: 'simuler=True'
+        },
+        {
+          id: 'org-step-5',
+          title: 'Rapport d\'organisation',
+          instruction: 'Comptez les fichiers par dossier de destination avec Counter et écrivez le résumé dans rapport_tri.txt.',
+          hint: 'Counter(dossier_pour(f.suffix) for f in fichiers)',
+          starterCode: `from collections import Counter
+
+fichiers = [p for p in Path("vrac").rglob("*") if p.is_file()]
+stats = Counter(dossier_pour(f.suffix) for f in ___)
+
+with open("rapport_tri.txt", "w", encoding="utf-8") as f:
+    f.write("🗂️ RAPPORT DE TRI\\n")
+    for dossier, n in stats.most_common():
+        f.write(f"  {dossier:<10}: {n} fichier(s)\\n")
+
+print("✅ rapport_tri.txt généré")`,
+          expectedCode: `for f in fichiers`,
+          validation: 'most_common'
+        },
+        {
+          id: 'org-step-6',
+          title: 'Script final avec argparse',
+          instruction: 'Rendez le script utilisable en ligne de commande : python organise.py DOSSIER [--executer]. Par défaut : simulation.',
+          hint: 'argparse : --executer avec action="store_true", puis simuler = not args.executer',
+          starterCode: `import argparse
+from pathlib import Path
+
+def main():
+    parser = argparse.ArgumentParser(description="Range un dossier par extension")
+    parser.add_argument("dossier", help="Dossier à ranger")
+    parser.add_argument("--executer", action="store_true",
+                        help="Déplace vraiment (sinon : simulation)")
+    args = parser.parse_args()
+
+    organiser(args.dossier, simuler=not args.___)
+
+if __name__ == "___":
+    main()
+
+# Usage :
+#   python organise.py vrac            → simulation
+#   python organise.py vrac --executer → rangement réel`,
+          expectedCode: `if __name__ == "__main__":`,
+          validation: '__main__'
+        }
+      ]
     }
   }
 ];
