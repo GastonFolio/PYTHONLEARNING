@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
-import confetti from 'canvas-confetti';
+import { useState } from 'react';
 import { modules } from '../data/modules';
 import { completeQuiz } from '../data/storage';
 import { ArrowLeft, CheckCircle, XCircle, RotateCcw, Trophy } from 'lucide-react';
@@ -29,14 +28,19 @@ export default function QuizPage({ moduleId, onNavigate, onProgressUpdate }: Qui
   const quiz = mod.quiz;
   const question = quiz[currentQ];
 
-  const handleAnswer = useCallback((index: number) => {
+  const handleAnswer = (index: number) => {
     if (showResult) return;
     setSelectedAnswer(index);
     setShowResult(true);
-    setAnswers(prev => [...prev, index]);
-  }, [showResult]);
 
-  const handleNext = useCallback(() => {
+    const newAnswers = [...answers, index];
+    setAnswers(newAnswers);
+
+    // Score is computed from answers array
+
+  };
+
+  const handleNext = () => {
     if (currentQ < quiz.length - 1) {
       setCurrentQ(c => c + 1);
       setSelectedAnswer(null);
@@ -47,73 +51,27 @@ export default function QuizPage({ moduleId, onNavigate, onProgressUpdate }: Qui
       onProgressUpdate();
       setFinished(true);
     }
-  }, [currentQ, quiz, answers, moduleId, onProgressUpdate]);
+  };
 
-  const handleRestart = useCallback(() => {
+  const handleRestart = () => {
     setCurrentQ(0);
     setSelectedAnswer(null);
     setShowResult(false);
     setFinished(false);
     setAnswers([]);
-  }, []);
+  };
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (finished) return;
-
-      // Number keys 1-4 to select answers
-      if (!showResult && e.key >= '1' && e.key <= '4') {
-        const index = parseInt(e.key) - 1;
-        if (index < question.options.length) {
-          handleAnswer(index);
-        }
-      }
-
-      // Enter or Space to go to next question
-      if (showResult && (e.key === 'Enter' || e.key === ' ')) {
-        e.preventDefault();
-        handleNext();
-      }
-
-      // Arrow keys to navigate between options
-      if (!showResult && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-        e.preventDefault();
-        setSelectedAnswer(prev => {
-          if (prev === null) return e.key === 'ArrowDown' ? 0 : question.options.length - 1;
-          const next = e.key === 'ArrowDown' ? prev + 1 : prev - 1;
-          return Math.max(0, Math.min(question.options.length - 1, next));
-        });
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showResult, finished, question, handleAnswer, handleNext]);
-
-  const finalScoreValue = answers.length > 0
-    ? Math.round((answers.filter((ans, i) => ans === quiz[i].correctIndex).length / quiz.length) * 100)
+  const finalScoreValue = answers.length > 0 
+    ? Math.round((answers.filter((ans, i) => ans === quiz[i].correctIndex).length / quiz.length) * 100) 
     : 0;
-
-  // Trigger confetti on finish with good score
-  useEffect(() => {
-    if (finished && finalScoreValue >= 80) {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        startVelocity: 30,
-        colors: ['#FFD43B', '#306998', '#10b981', '#8b5cf6'],
-      });
-    }
-  }, [finished, finalScoreValue]);
 
   if (finished) {
     return (
       <div className="min-h-screen pt-24 pb-16">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <div className="glass rounded-2xl p-8 text-center animate-slide-up">
-            <div className="mb-6">
-              <Trophy size={56} className={`mx-auto ${finalScoreValue >= 80 ? 'text-python-yellow' : finalScoreValue >= 50 ? 'text-accent-orange' : 'text-gray-500'}`} />
+            <div className="text-6xl mb-6">
+              {finalScoreValue >= 80 ? '🏆' : finalScoreValue >= 50 ? '👍' : '📚'}
             </div>
             <h2 className="text-3xl font-bold text-white mb-2">Quiz Terminé !</h2>
             <p className="text-gray-400 mb-8">Module : {mod.title}</p>
@@ -140,10 +98,10 @@ export default function QuizPage({ moduleId, onNavigate, onProgressUpdate }: Qui
 
             <p className="text-lg text-gray-300 mb-8">
               {finalScoreValue >= 80
-                ? 'Excellent ! Vous maîtrisez ce module !'
+                ? '🎉 Excellent ! Vous maîtrisez ce module !'
                 : finalScoreValue >= 50
-                ? 'Bien joué ! Relisez les leçons pour vous améliorer.'
-                : 'Continuez à étudier les leçons et réessayez !'}
+                ? '👍 Bien joué ! Relisez les leçons pour vous améliorer.'
+                : '📚 Continuez à étudier les leçons et réessayez !'}
             </p>
 
             {/* Answers Review */}
@@ -167,14 +125,14 @@ export default function QuizPage({ moduleId, onNavigate, onProgressUpdate }: Qui
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
                 onClick={handleRestart}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl border border-white/20 text-white hover:bg-white/5 transition-all focus-ring cursor-pointer"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl border border-white/20 text-white hover:bg-white/5 transition-all"
               >
                 <RotateCcw size={18} />
                 Réessayer
               </button>
               <button
                 onClick={() => onNavigate('module-detail', { moduleId: mod.id })}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-python-blue text-white hover:bg-python-blue/80 transition-all focus-ring cursor-pointer"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-python-blue text-white hover:bg-python-blue/80 transition-all"
               >
                 <Trophy size={18} />
                 Retour au module
@@ -192,7 +150,7 @@ export default function QuizPage({ moduleId, onNavigate, onProgressUpdate }: Qui
         {/* Header */}
         <button
           onClick={() => onNavigate('module-detail', { moduleId: mod.id })}
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8 focus-ring rounded-lg cursor-pointer"
+          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
         >
           <ArrowLeft size={18} />
           Retour au module
@@ -205,7 +163,7 @@ export default function QuizPage({ moduleId, onNavigate, onProgressUpdate }: Qui
               Question {currentQ + 1}/{quiz.length}
             </span>
             <span className="text-sm font-bold text-python-yellow">
-              {mod.title}
+              {mod.icon} {mod.title}
             </span>
           </div>
           <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mb-8">
@@ -219,7 +177,7 @@ export default function QuizPage({ moduleId, onNavigate, onProgressUpdate }: Qui
           <h2 className="text-xl font-bold text-white mb-6">{question.question}</h2>
 
           {/* Options */}
-          <div className="space-y-3 mb-8" role="radiogroup" aria-label="Options de réponse">
+          <div className="space-y-3 mb-8">
             {question.options.map((option, i) => {
               let borderColor = 'border-white/10';
               let bgColor = 'bg-white/5 hover:bg-white/10';
@@ -245,12 +203,9 @@ export default function QuizPage({ moduleId, onNavigate, onProgressUpdate }: Qui
                   key={i}
                   onClick={() => handleAnswer(i)}
                   disabled={showResult}
-                  className={`w-full text-left p-4 rounded-xl border ${borderColor} ${bgColor} ${textColor} transition-all focus-ring ${
+                  className={`w-full text-left p-4 rounded-xl border ${borderColor} ${bgColor} ${textColor} transition-all ${
                     !showResult ? 'cursor-pointer' : 'cursor-default'
                   }`}
-                  role="radio"
-                  aria-checked={selectedAnswer === i}
-                  aria-label={`Option ${String.fromCharCode(65 + i)}: ${option}`}
                 >
                   <div className="flex items-center gap-3">
                     <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border ${
@@ -258,16 +213,11 @@ export default function QuizPage({ moduleId, onNavigate, onProgressUpdate }: Qui
                       showResult && i === selectedAnswer ? 'border-red-500 bg-red-500/20' :
                       'border-white/20 bg-white/5'
                     }`}>
-                      {showResult && i === question.correctIndex ? <CheckCircle size={16} /> :
-                       showResult && i === selectedAnswer && i !== question.correctIndex ? <XCircle size={16} /> :
+                      {showResult && i === question.correctIndex ? '✓' :
+                       showResult && i === selectedAnswer && i !== question.correctIndex ? '✗' :
                        String.fromCharCode(65 + i)}
                     </span>
                     <span className="font-medium">{option}</span>
-                    {!showResult && (
-                      <span className="ml-auto text-xs text-gray-600 hidden sm:inline">
-                        {i + 1}
-                      </span>
-                    )}
                   </div>
                 </button>
               );
@@ -283,7 +233,7 @@ export default function QuizPage({ moduleId, onNavigate, onProgressUpdate }: Qui
             }`}>
               <p className="text-sm">
                 <span className="font-bold text-white">
-                  {selectedAnswer === question.correctIndex ? 'Correct !' : 'Incorrect'}
+                  {selectedAnswer === question.correctIndex ? '✅ Correct !' : '❌ Incorrect'}
                 </span>
                 <br />
                 <span className="text-gray-300 mt-1 block">{question.explanation}</span>
@@ -295,17 +245,10 @@ export default function QuizPage({ moduleId, onNavigate, onProgressUpdate }: Qui
           {showResult && (
             <button
               onClick={handleNext}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-python-blue to-python-blue/80 text-white font-bold hover:shadow-lg transition-all animate-fade-in focus-ring cursor-pointer"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-python-blue to-python-blue/80 text-white font-bold hover:shadow-lg transition-all animate-fade-in"
             >
-              {currentQ < quiz.length - 1 ? 'Question suivante' : 'Voir les résultats'}
+              {currentQ < quiz.length - 1 ? 'Question suivante →' : 'Voir les résultats 🏆'}
             </button>
-          )}
-
-          {/* Keyboard hint */}
-          {!showResult && (
-            <p className="text-xs text-gray-600 text-center mt-4 hidden sm:block">
-              Utilisez les touches 1-4 ou les flèches pour sélectionner, Entrée pour valider
-            </p>
           )}
         </div>
       </div>
