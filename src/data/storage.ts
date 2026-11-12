@@ -8,6 +8,8 @@ export interface UserProgress {
   completedProjects: string[];
   completedExams: string[];
   examScores: Record<string, number>;
+  completedGames: string[];
+  gameScores: Record<string, number>;
   badges: Badge[];
   totalXP: number;
   streak: number;
@@ -34,6 +36,8 @@ const defaultProgress: UserProgress = {
   completedProjects: [],
   completedExams: [],
   examScores: {},
+  completedGames: [],
+  gameScores: {},
   badges: [],
   totalXP: 0,
   streak: 0,
@@ -147,6 +151,22 @@ export function completeExam(examId: string, score: number, xpReward: number, pa
   return progress;
 }
 
+// ---- Jeux : +XP à la première victoire, meilleur score conservé ----
+export function completeGame(gameId: string, score: number, xpReward = 50): UserProgress {
+  const progress = loadProgress();
+  if (!progress.completedGames) progress.completedGames = [];
+  if (!progress.gameScores) progress.gameScores = {};
+  const previousBest = progress.gameScores[gameId] || 0;
+  progress.gameScores[gameId] = Math.max(previousBest, score);
+  if (!progress.completedGames.includes(gameId)) {
+    progress.completedGames.push(gameId);
+    progress.totalXP += xpReward;
+  }
+  checkAndAwardBadges(progress);
+  saveProgress(progress);
+  return progress;
+}
+
 // ---- Entraînement intensif : déverrouillage strictement consécutif ----
 // Le palier 0 est ouvert ; un palier N est ouvert si le DERNIER exercice
 // du palier N-1 est réussi (la chaîne consécutive le garantit).
@@ -194,6 +214,7 @@ const BADGE_DEFINITIONS = [
   { id: 'intensif-40', title: 'Machine', description: 'Réussir 40 exercices intensifs', icon: '⚡', requirement: (p: UserProgress) => (p.completedExercises || []).filter(id => id.startsWith('int-')).length >= 40 },
   { id: 'examinateur', title: 'Examiné', description: 'Réussir un examen blanc', icon: '🎓', requirement: (p: UserProgress) => (p.completedExams || []).length >= 1 },
   { id: 'certifie', title: 'Certifié PyMaster', description: 'Réussir le Défi Final (certification)', icon: '🌟', requirement: (p: UserProgress) => (p.completedExams || []).includes('exam-certification') },
+  { id: 'gamer', title: 'Héros du Jeu', description: 'Terminer Super Python Hero', icon: '🎮', requirement: (p: UserProgress) => (p.completedGames || []).length >= 1 },
   { id: 'streak-3', title: 'Régulier', description: '3 jours consécutifs', icon: '🔥', requirement: (p: UserProgress) => p.streak >= 3 },
   { id: 'streak-7', title: 'Inarrêtable', description: '7 jours consécutifs', icon: '💪', requirement: (p: UserProgress) => p.streak >= 7 },
 ];

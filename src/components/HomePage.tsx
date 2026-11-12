@@ -225,7 +225,7 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
       {/* Entraînement intensif + Vérification */}
       <section className="py-10 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <button
               onClick={() => onNavigate('intensive')}
               className="glass rounded-2xl p-8 text-left card-hover group border-t-2 border-t-orange-500"
@@ -256,6 +256,22 @@ export default function HomePage({ onNavigate, progress }: HomePageProps) {
               </p>
               <span className="inline-flex items-center gap-2 text-sm font-bold text-purple-400">
                 Prouver mon niveau <ArrowRight size={16} />
+              </span>
+            </button>
+            <button
+              onClick={() => onNavigate('jeux')}
+              className="glass rounded-2xl p-8 text-left card-hover group border-t-2 border-t-green-500 md:col-span-2 lg:col-span-1"
+            >
+              <span className="text-4xl mb-3 block">🎮</span>
+              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-python-yellow transition-colors">
+                Divertissements — Super Python Hero
+              </h3>
+              <p className="text-sm text-gray-400 mb-4">
+                Notre premier jeu navigateur style Mario : écrase les bugs, ramasse les pièces,
+                termine 3 niveaux et gagne +50 XP.
+              </p>
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-green-400">
+                Jouer maintenant <ArrowRight size={16} />
               </span>
             </button>
           </div>

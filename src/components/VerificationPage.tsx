@@ -11,6 +11,7 @@ const LEVEL_COLORS: Record<string, string> = {
   'Fondations': '#10b981',
   'Intermédiaire': '#f59e0b',
   'Certification': '#8b5cf6',
+  'Examen officiel': '#0ea5e9',
 };
 
 export default function VerificationPage({ onNavigate, progress }: VerificationPageProps) {
@@ -26,8 +27,9 @@ export default function VerificationPage({ onNavigate, progress }: VerificationP
             ✅ Vérification des <span className="gradient-text">connaissances</span>
           </h1>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            Prouvez votre niveau : QCM chronométré (60% de la note) + épreuves pratiques (40%).
-            Atteignez le seuil pour valider et gagner de l'XP. La certification exige 80%.
+            Prouvez votre niveau : examens QCM chronométrés, examens officiels avec questions
+            théoriques (rédaction + corrigé) et épreuves pratiques notées. Atteignez le seuil
+            pour valider et gagner de l'XP. La certification exige 80%.
           </p>
           <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30">
             <span className="text-purple-400 font-bold">{done.length}</span>
@@ -48,7 +50,7 @@ export default function VerificationPage({ onNavigate, progress }: VerificationP
         </div>
 
         {/* Exam cards */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {exams.map((exam) => {
             const best = scores[exam.id];
             const passed = done.includes(exam.id);
@@ -77,7 +79,8 @@ export default function VerificationPage({ onNavigate, progress }: VerificationP
 
                 <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
                   <span className="flex items-center gap-1"><Clock size={13} /> {exam.durationMinutes} min</span>
-                  <span>❓ {exam.questions.length} QCM</span>
+                  {exam.questions.length > 0 && <span>❓ {exam.questions.length} QCM</span>}
+                  {exam.theory && exam.theory.length > 0 && <span>✍️ {exam.theory.length} théoriques</span>}
                   <span>💻 {exam.practical.length} pratiques</span>
                   <span>🏆 +{exam.xpReward} XP</span>
                 </div>

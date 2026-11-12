@@ -43,6 +43,7 @@ export default function Header({ currentPage, onNavigate, progress }: HeaderProp
     { id: 'modules', label: 'Modules', icon: <Terminal size={18} /> },
     { id: 'intensive', label: 'Intensif', icon: <Zap size={18} /> },
     { id: 'projects', label: 'Projets', icon: <Rocket size={18} /> },
+    { id: 'jeux', label: 'Jeux', icon: <span className="text-base leading-none">🎮</span> },
     { id: 'verification', label: 'Vérif', icon: <CheckCircle size={18} /> },
     { id: 'badges', label: 'Badges', icon: <Trophy size={18} /> },
     { id: 'profile', label: 'Profil', icon: <User size={18} /> },

@@ -38,12 +38,12 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
   const activeLessonData = mod.lessons.find(l => l.id === activeLesson);
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
+    <div className="min-h-screen pb-16">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         {/* Back Button */}
         <button
           onClick={() => onNavigate('modules')}
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
+          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6 focus-ring rounded-lg cursor-pointer"
         >
           <ArrowLeft size={18} />
           Retour aux modules
@@ -64,14 +64,22 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
               </span>
               <h1 className="text-3xl font-bold text-white mt-1 mb-2">{mod.title}</h1>
               <p className="text-gray-400 mb-4">{mod.description}</p>
-              
+
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                 <span className="flex items-center gap-1">
                   <BookOpen size={14} /> {mod.lessons.length} leçons
                 </span>
                 <span>~{mod.estimatedHours}h</span>
-                {mod.quiz.length > 0 && <span>✅ {mod.quiz.length} questions quiz</span>}
-                {mod.project && <span>🚀 1 projet</span>}
+                {mod.quiz.length > 0 && (
+                  <span className="flex items-center gap-1">
+                    <HelpCircle size={14} /> {mod.quiz.length} questions quiz
+                  </span>
+                )}
+                {mod.project && (
+                  <span className="flex items-center gap-1">
+                    <Rocket size={14} /> 1 projet
+                  </span>
+                )}
               </div>
 
               {/* Progress */}
@@ -96,7 +104,7 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
           <div className="animate-fade-in">
             <button
               onClick={() => setActiveLesson(null)}
-              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6 focus-ring rounded-lg cursor-pointer"
             >
               <ArrowLeft size={18} />
               Retour au module
@@ -111,7 +119,7 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
                 {!progress.completedLessons.includes(activeLessonData.id) ? (
                   <button
                     onClick={() => handleCompleteLesson(activeLessonData.id)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 transition-all text-sm font-semibold"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 transition-all text-sm font-semibold focus-ring cursor-pointer"
                   >
                     <CheckCircle size={16} />
                     Marquer comme terminé
@@ -119,7 +127,7 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
                 ) : (
                   <span className="flex items-center gap-2 text-green-400 text-sm font-semibold">
                     <CheckCircle size={16} />
-                    Terminé ✓
+                    Terminé
                   </span>
                 )}
               </div>
@@ -145,10 +153,10 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
                     );
                   }
                   if (line.trim() === '') return <div key={i} className="h-3" />;
-                  
+
                   // Handle inline code and code blocks
                   if (line.startsWith('```')) return null;
-                  
+
                   // Handle inline code
                   const parts = line.split(/(`[^`]+`)/g);
                   return (
@@ -167,7 +175,8 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
               {activeLessonData.codeExamples.length > 0 && (
                 <div className="mt-8">
                   <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                    💻 Exemples de Code
+                    <Code2 size={18} />
+                    Exemples de Code
                   </h3>
                   {activeLessonData.codeExamples.map((ex, i) => (
                     <CodeBlock
@@ -185,15 +194,15 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
                 <div className="mt-8">
                   <button
                     onClick={() => setExpandedExercise(expandedExercise === activeLessonData.id ? null : activeLessonData.id)}
-                    className="w-full flex items-center justify-between p-4 rounded-xl bg-accent-purple/10 border border-accent-purple/30 hover:bg-accent-purple/15 transition-all"
+                    className="w-full flex items-center justify-between p-4 rounded-xl bg-accent-purple/10 border border-accent-purple/30 hover:bg-accent-purple/15 transition-all focus-ring cursor-pointer"
                   >
                     <span className="flex items-center gap-2 font-bold text-accent-purple">
                       <Code2 size={18} />
-                      🏋️ Exercices Pratiques ({activeLessonData.exercises.length})
+                      Exercices Pratiques ({activeLessonData.exercises.length})
                     </span>
                     {expandedExercise === activeLessonData.id ? <ChevronUp size={18} className="text-accent-purple" /> : <ChevronDown size={18} className="text-accent-purple" />}
                   </button>
-                  
+
                   {expandedExercise === activeLessonData.id && (
                     <div className="mt-4 space-y-4 animate-fade-in">
                       {activeLessonData.exercises.map((exercise) => (
@@ -219,18 +228,18 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
                   return (
                     <>
                       {prev ? (
-                        <button onClick={() => setActiveLesson(prev.id)} className="text-sm text-gray-400 hover:text-white transition-colors">
+                        <button onClick={() => setActiveLesson(prev.id)} className="text-sm text-gray-400 hover:text-white transition-colors focus-ring rounded px-2 py-1 cursor-pointer">
                           ← {prev.title}
                         </button>
                       ) : <div />}
                       {next ? (
-                        <button onClick={() => setActiveLesson(next.id)} className="text-sm text-python-yellow hover:text-white transition-colors">
+                        <button onClick={() => setActiveLesson(next.id)} className="text-sm text-python-yellow hover:text-white transition-colors focus-ring rounded px-2 py-1 cursor-pointer">
                           {next.title} →
                         </button>
                       ) : (
                         <button
                           onClick={() => onNavigate('quiz', { moduleId: mod.id })}
-                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-python-yellow/20 text-python-yellow border border-python-yellow/30 hover:bg-python-yellow/30 transition-all text-sm font-semibold"
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-python-yellow/20 text-python-yellow border border-python-yellow/30 hover:bg-python-yellow/30 transition-all text-sm font-semibold focus-ring cursor-pointer"
                         >
                           Passer le Quiz →
                         </button>
@@ -257,7 +266,7 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
                     <button
                       key={lesson.id}
                       onClick={() => setActiveLesson(lesson.id)}
-                      className="w-full glass rounded-xl p-4 sm:p-5 text-left card-hover group flex items-center gap-4"
+                      className="w-full glass rounded-xl p-4 sm:p-5 text-left card-hover group flex items-center gap-4 focus-ring cursor-pointer"
                     >
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold ${
@@ -275,7 +284,11 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
                         <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
                           <span>{lesson.duration}</span>
                           <span>{lesson.codeExamples.length} exemples</span>
-                          {exerciseCount > 0 && <span>🏋️ {exerciseCount} exercice(s)</span>}
+                          {exerciseCount > 0 && (
+                            <span className="flex items-center gap-1">
+                              <Code2 size={12} /> {exerciseCount} exercice(s)
+                            </span>
+                          )}
                         </div>
                       </div>
                       <ChevronDown size={16} className="text-gray-500 group-hover:text-white transition-colors rotate-[-90deg]" />
@@ -290,7 +303,7 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
               <div className="mb-8">
                 <button
                   onClick={() => onNavigate('quiz', { moduleId: mod.id })}
-                  className="w-full glass rounded-xl p-6 text-left card-hover group"
+                  className="w-full glass rounded-xl p-6 text-left card-hover group focus-ring cursor-pointer"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-python-yellow/10 flex items-center justify-center">
@@ -319,7 +332,7 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
               <div>
                 <button
                   onClick={() => onNavigate('project', { moduleId: mod.id })}
-                  className="w-full glass rounded-xl p-6 text-left card-hover group"
+                  className="w-full glass rounded-xl p-6 text-left card-hover group focus-ring cursor-pointer"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-accent-green/10 flex items-center justify-center">
@@ -327,7 +340,7 @@ export default function ModuleDetailPage({ moduleId, onNavigate, progress, onPro
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-white group-hover:text-accent-green transition-colors">
-                        🚀 Projet : {mod.project.title}
+                        Projet : {mod.project.title}
                       </h3>
                       <p className="text-sm text-gray-400 mt-0.5">{mod.project.description}</p>
                       {progress.completedProjects.includes(mod.id) && (

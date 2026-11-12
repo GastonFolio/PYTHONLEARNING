@@ -11,6 +11,8 @@ import ProjectsPage from './components/ProjectsPage';
 import IntensivePage from './components/IntensivePage';
 import VerificationPage from './components/VerificationPage';
 import ExamRunner from './components/ExamRunner';
+import JeuxPage from './components/JeuxPage';
+import PythonHeroGame from './components/PythonHeroGame';
 import ProjectDetailPage from './components/ProjectDetailPage';
 import ModuleDetailPage from './components/ModuleDetailPage';
 import QuizPage from './components/QuizPage';
@@ -49,7 +51,7 @@ const breadcrumbMap: Record<string, (data: Record<string, string>, navigate: (pa
 const VALID_PAGES = [
   'home', 'roadmap', 'modules', 'projects', 'project-detail',
   'module-detail', 'quiz', 'project', 'badges', 'profile',
-  'intensive', 'verification', 'exam',
+  'intensive', 'verification', 'exam', 'jeux', 'jeu',
 ];
 
 // Routage par hash : #/modules, #/module-detail?moduleId=mod-1 ...
@@ -200,6 +202,14 @@ export default function App() {
             onNavigate={handleNavigate}
             onProgressUpdate={refreshProgress}
           />
+        );
+      case 'jeux':
+        return <JeuxPage onNavigate={handleNavigate} progress={progress} />;
+      case 'jeu':
+        return nav.data.gameId === 'python-hero' ? (
+          <PythonHeroGame onNavigate={handleNavigate} onProgressUpdate={refreshProgress} />
+        ) : (
+          <JeuxPage onNavigate={handleNavigate} progress={progress} />
         );
       default:
         return <HomePage onNavigate={handleNavigate} progress={progress} />;

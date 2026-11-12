@@ -6,19 +6,30 @@
 
 import type { QuizQuestion, Exercise } from './modules';
 
+// Question théorique à réponse libre : l'apprenant rédige, révèle le
+// corrigé, puis s'auto-évalue (acquis / partiel / à revoir) = 1 / 0,5 / 0.
+export interface TheoryQuestion {
+  id: string;
+  question: string;
+  modelAnswer: string;
+  keyPoints: string[];
+  points: number;
+}
+
 export interface Exam {
   id: string;
   title: string;
   icon: string;
-  level: 'Fondations' | 'Intermédiaire' | 'Certification';
+  level: 'Fondations' | 'Intermédiaire' | 'Certification' | 'Examen officiel';
   color: string;
   durationMinutes: number;
   passingScore: number;
   xpReward: number;
   description: string;
   objectives: string[];
+  theory?: TheoryQuestion[];
   questions: QuizQuestion[];
-  practical: Exercise[];
+  practical: (Exercise & { points?: number })[];
 }
 
 export const exams: Exam[] = [
@@ -518,6 +529,573 @@ class Gestionnaire:
           { input: '', expected: 'if not t.faite', description: 'Le filtre restantes() est présent' },
         ],
         difficulty: 'hard',
+      },
+    ],
+  },
+  // ========================================================
+  // EXAMEN OFFICIEL N°1 — Théorie + pratique (support docs/exam-blanc)
+  // ========================================================
+  {
+    id: 'exam-blanc-1',
+    title: 'Examen Blanc n°1 — Bases',
+    icon: '📘',
+    level: 'Examen officiel',
+    color: '#0ea5e9',
+    durationMinutes: 45,
+    passingScore: 70,
+    xpReward: 180,
+    description:
+      'Épreuve type du support de cours : fonctions, chaînes, boucles, listes, conditions et dictionnaires. 3 questions théoriques + 9 exercices notés 10 points.',
+    objectives: ['✍️ 3 théoriques', '💻 9 exercices', 'Barème : 120 pts', 'Seuil : 70%'],
+    theory: [
+      {
+        id: 'eb1-t1',
+        question:
+          'Fonctions et procédures : expliquez l\'avantage d\'utiliser des fonctions dans un programme Python et donnez un exemple simple.',
+        modelAnswer:
+          'Une fonction évite la duplication : on écrit la logique une fois et on la réutilise. Elle rend le programme plus lisible (un nom décrit l\'action), plus facile à tester et à corriger, et isole les erreurs. Exemple :\n\ndef aire_rectangle(largeur, longueur):\n    return largeur * longueur\n\nprint(aire_rectangle(3, 5))  # 15',
+        keyPoints: [
+          'Réutilisation / éviter la duplication',
+          'Lisibilité et maintenabilité',
+          'Testabilité et correction isolée',
+          'Exemple valide avec def ... return ...',
+        ],
+        points: 10,
+      },
+      {
+        id: 'eb1-t2',
+        question:
+          'Manipulation des chaînes : donnez deux méthodes pour concaténer deux chaînes de caractères en Python.',
+        modelAnswer:
+          '1) L\'opérateur + :\nprenom = "Alice"\nnom = "Dupont"\ncomplet = prenom + " " + nom\n\n2) La f-string (ou .format) :\ncomplet = f"{prenom} {nom}"\n\nAutre possibilité : " ".join([prenom, nom]).',
+        keyPoints: ['Opérateur +', 'f-string (ou .format / join)', 'Exemple concret'],
+        points: 10,
+      },
+      {
+        id: 'eb1-t3',
+        question:
+          'Structures de contrôle : quelle est la différence entre l\'instruction while et l\'instruction for en Python ?',
+        modelAnswer:
+          'for parcourt une séquence connue (range, liste, chaîne) : le nombre d\'itérations est déterminé par la séquence. while répète tant qu\'une condition est vraie : le nombre d\'itérations peut être inconnu à l\'avance, et il faut faire évoluer la condition pour éviter une boucle infinie.',
+        keyPoints: [
+          'for = itération sur une séquence',
+          'while = répétition conditionnelle',
+          'Risque de boucle infinie avec while',
+        ],
+        points: 10,
+      },
+    ],
+    questions: [],
+    practical: [
+      {
+        id: 'eb1-p1',
+        title: 'Ex. 1.1 — Créer la liste',
+        instruction: 'Créez une liste appelée nombres contenant : 2, 4, 6, 8, 10.',
+        starterCode: `# Créez la liste nombres
+nombres = ___`,
+        solution: `nombres = [2, 4, 6, 8, 10]`,
+        hints: ['Une liste s\'écrit entre crochets', 'Séparez les éléments par des virgules'],
+        tests: [{ input: '', expected: 'nombres = [2, 4, 6, 8, 10]', description: 'La liste contient bien 2, 4, 6, 8, 10' }],
+        difficulty: 'easy',
+        points: 10,
+      },
+      {
+        id: 'eb1-p2',
+        title: 'Ex. 1.2 — Ajouter au début',
+        instruction: 'Ajoutez 12 puis 14 AU DÉBUT de la liste avec la méthode insert().',
+        starterCode: `nombres = [2, 4, 6, 8, 10]
+
+# Deux appels à insert(0, valeur) — attention à l'ordre final : [12, 14, 2, ...]
+___
+___
+
+print(nombres)`,
+        solution: `nombres = [2, 4, 6, 8, 10]
+
+nombres.insert(0, 14)
+nombres.insert(0, 12)
+
+print(nombres)`,
+        hints: [
+          'liste.insert(indice, valeur) insère à l\'indice donné',
+          'Pour obtenir [12, 14, ...], insérez d\'abord 14, puis 12 en position 0',
+        ],
+        tests: [
+          { input: '', expected: 'nombres.insert(0, 14)', description: 'insert de 14 en position 0' },
+          { input: '', expected: 'nombres.insert(0, 12)', description: 'insert de 12 en position 0' },
+        ],
+        difficulty: 'medium',
+        points: 10,
+      },
+      {
+        id: 'eb1-p3',
+        title: 'Ex. 1.3 — Extraire le dernier',
+        instruction: 'Extrayez le dernier élément de la liste avec pop() dans une variable, puis affichez-le.',
+        starterCode: `nombres = [2, 4, 6, 8, 10]
+
+# Extrayez le dernier élément (il est retiré de la liste)
+dernier = ___
+print(dernier)`,
+        solution: `nombres = [2, 4, 6, 8, 10]
+
+dernier = nombres.pop()
+print(dernier)`,
+        hints: ['pop() sans argument retire ET retourne le dernier élément'],
+        tests: [{ input: '', expected: 'nombres.pop()', description: 'pop() extrait le dernier élément' }],
+        difficulty: 'easy',
+        points: 10,
+      },
+      {
+        id: 'eb1-p4',
+        title: 'Ex. 2.1 — Fonction est_pair',
+        instruction: 'Créez est_pair(n) qui renvoie True si n est pair, False sinon.',
+        starterCode: `def est_pair(n):
+    ___`,
+        solution: `def est_pair(n):
+    return n % 2 == 0`,
+        hints: ['L\'opérateur % donne le reste de la division', 'Un nombre pair a un reste de 0'],
+        tests: [{ input: '', expected: 'return n % 2 == 0', description: 'La fonction teste la parité' }],
+        difficulty: 'easy',
+        points: 10,
+      },
+      {
+        id: 'eb1-p5',
+        title: 'Ex. 2.2 — Utiliser est_pair',
+        instruction: 'Demandez un nombre à l\'utilisateur puis affichez le résultat de est_pair().',
+        starterCode: `def est_pair(n):
+    return n % 2 == 0
+
+nombre = int(input("Entrez un nombre : "))
+# Affichez le résultat de est_pair
+___`,
+        solution: `def est_pair(n):
+    return n % 2 == 0
+
+nombre = int(input("Entrez un nombre : "))
+print(est_pair(nombre))`,
+        hints: ['int(input(...)) convertit la saisie en entier', 'print(est_pair(nombre))'],
+        tests: [{ input: '', expected: 'print(est_pair(nombre))', description: 'La fonction est appelée et affichée' }],
+        difficulty: 'easy',
+        points: 10,
+      },
+      {
+        id: 'eb1-p6',
+        title: 'Ex. 2.3 — Le plus grand des deux',
+        instruction: 'Demandez deux nombres et affichez le plus grand des deux.',
+        starterCode: `a = int(input("Premier nombre : "))
+b = int(input("Deuxième nombre : "))
+
+# Affichez le plus grand
+___`,
+        solution: `a = int(input("Premier nombre : "))
+b = int(input("Deuxième nombre : "))
+
+print(max(a, b))`,
+        hints: ['max(a, b) renvoie le plus grand', 'Variante : if a > b: print(a) else: print(b)'],
+        tests: [{ input: '', expected: 'max(a, b)', description: 'Le plus grand est affiché' }],
+        difficulty: 'easy',
+        points: 10,
+      },
+      {
+        id: 'eb1-p7',
+        title: 'Ex. 3.1 — Dictionnaire etudiants',
+        instruction: 'Créez un dictionnaire etudiants avec au moins 3 noms comme clés et leurs notes comme valeurs.',
+        starterCode: `# Créez le dictionnaire
+etudiants = ___`,
+        solution: `etudiants = {"Alice": 85, "Marc": 72, "Sara": 91}`,
+        hints: ['Un dict s\'écrit {clé: valeur, ...}', 'Les clés sont uniques'],
+        tests: [{ input: '', expected: '"Alice"', description: 'Le dictionnaire contient des noms comme clés' }],
+        difficulty: 'easy',
+        points: 10,
+      },
+      {
+        id: 'eb1-p8',
+        title: 'Ex. 3.2 — Vérifier une clé',
+        instruction: 'Vérifiez si la clé "Alice" existe dans le dictionnaire et affichez le booléen.',
+        starterCode: `etudiants = {"Alice": 85, "Marc": 72}
+
+# Vérifiez la présence de "Alice" avec l'opérateur in
+___`,
+        solution: `etudiants = {"Alice": 85, "Marc": 72}
+
+print("Alice" in etudiants)`,
+        hints: ['La syntaxe est "clé" in dictionnaire', 'Le résultat est True ou False'],
+        tests: [{ input: '', expected: '"Alice" in etudiants', description: 'Le test d\'appartenance est présent' }],
+        difficulty: 'easy',
+        points: 10,
+      },
+      {
+        id: 'eb1-p9',
+        title: 'Ex. 3.3 — Ajouter et mettre à jour',
+        instruction: 'Ajoutez "Bob" avec la note 85 et mettez la note d\'"Alice" à 90.',
+        starterCode: `etudiants = {"Alice": 85, "Marc": 72}
+
+# Ajoutez Bob puis mettez Alice à jour
+___
+___
+
+print(etudiants)`,
+        solution: `etudiants = {"Alice": 85, "Marc": 72}
+
+etudiants["Bob"] = 85
+etudiants["Alice"] = 90
+
+print(etudiants)`,
+        hints: ['dict[clé] = valeur ajoute ou met à jour', 'Deux affectations suffisent'],
+        tests: [
+          { input: '', expected: 'etudiants["Bob"] = 85', description: 'Bob est ajouté avec 85' },
+          { input: '', expected: 'etudiants["Alice"] = 90', description: 'Alice passe à 90' },
+        ],
+        difficulty: 'medium',
+        points: 10,
+      },
+    ],
+  },
+  // ========================================================
+  // EXAMEN OFFICIEL N°2 — Théorie + pratique (2e partie du support)
+  // ========================================================
+  {
+    id: 'exam-blanc-2',
+    title: 'Examen Blanc n°2 — Tuples & Erreurs',
+    icon: '📗',
+    level: 'Examen officiel',
+    color: '#14b8a6',
+    durationMinutes: 40,
+    passingScore: 70,
+    xpReward: 180,
+    description:
+      'Deuxième partie du support : tuples nommés, opérateurs logiques, exceptions et boucles. 3 théoriques + 6 exercices notés 10 points.',
+    objectives: ['✍️ 3 théoriques', '💻 6 exercices', 'Barème : 90 pts', 'Seuil : 70%'],
+    theory: [
+      {
+        id: 'eb2-t1',
+        question:
+          'Manipulation de tuples : expliquez ce qu\'est un tuple nommé en Python et donnez un exemple d\'utilisation.',
+        modelAnswer:
+          'Un tuple nommé (namedtuple) est un tuple dont les champs portent des noms, ce qui rend le code lisible tout en restant immuable. On le crée avec collections.namedtuple :\n\nfrom collections import namedtuple\nPoint = namedtuple("Point", ["x", "y"])\np = Point(2, 5)\nprint(p.x, p.y)  # 2 5\n\nOn peut aussi le convertir en dict avec p._asdict().',
+        keyPoints: [
+          'Tuple immuable avec champs nommés',
+          'Créé via collections.namedtuple',
+          'Accès par attribut : p.x',
+          'Exemple concret valide',
+        ],
+        points: 10,
+      },
+      {
+        id: 'eb2-t2',
+        question:
+          'Opérateurs logiques : donnez un exemple d\'utilisation des opérateurs and, or et not dans une expression conditionnelle.',
+        modelAnswer:
+          'age = 20\nmajeur = age >= 18\npermis = True\n\nif majeur and permis:\n    print("Peut conduire")\n\nif age < 18 or age > 65:\n    print("Tarif réduit")\n\nif not permis:\n    print("Sans permis")\n\nand exige les deux conditions vraies ; or en exige au moins une ; not inverse un booléen.',
+        keyPoints: ['and = les deux vraies', 'or = au moins une vraie', 'not = négation', 'Exemple conditionnel complet'],
+        points: 10,
+      },
+      {
+        id: 'eb2-t3',
+        question: 'Manipulation des listes : comment supprimer tous les éléments d\'une liste en une seule instruction ?',
+        modelAnswer:
+          'Avec la méthode clear() :\n\nliste = [1, 2, 3]\nliste.clear()\nprint(liste)  # []\n\nAlternative : del liste[:] (vide la liste sur place). Attention : liste = [] crée une nouvelle liste, ce qui ne vide pas les autres références.',
+        keyPoints: ['liste.clear()', 'Alternative del liste[:]', 'Différence avec réaffectation'],
+        points: 10,
+      },
+    ],
+    questions: [],
+    practical: [
+      {
+        id: 'eb2-p1',
+        title: 'Ex. 1.1 — Division protégée',
+        instruction: 'Créez diviser_sans_exception(a, b) qui gère la division par zéro et renvoie None en cas d\'erreur.',
+        starterCode: `def diviser_sans_exception(a, b):
+    # Gérez la division par zéro
+    ___`,
+        solution: `def diviser_sans_exception(a, b):
+    try:
+        return a / b
+    except ZeroDivisionError:
+        return None`,
+        hints: ['try: puis le code risqué', 'except ZeroDivisionError: return None'],
+        tests: [
+          { input: '', expected: 'return a / b', description: 'La division est tentée' },
+          { input: '', expected: 'except ZeroDivisionError', description: 'L\'erreur est capturée' },
+        ],
+        difficulty: 'medium',
+        points: 10,
+      },
+      {
+        id: 'eb2-p2',
+        title: 'Ex. 1.2 — Diviser 10 par 0',
+        instruction: 'Utilisez la fonction pour diviser 10 par 0 et affichez le résultat.',
+        starterCode: `def diviser_sans_exception(a, b):
+    try:
+        return a / b
+    except ZeroDivisionError:
+        return None
+
+# Divisez 10 par 0 et affichez le résultat
+___`,
+        solution: `def diviser_sans_exception(a, b):
+    try:
+        return a / b
+    except ZeroDivisionError:
+        return None
+
+print(diviser_sans_exception(10, 0))`,
+        hints: ['Un appel de fonction s\'écrit nom(arguments)', 'Le résultat attendu est None (affiché "None")'],
+        tests: [{ input: '', expected: 'diviser_sans_exception(10, 0)', description: 'L\'appel 10 / 0 est présent' }],
+        difficulty: 'easy',
+        points: 10,
+      },
+      {
+        id: 'eb2-p3',
+        title: 'Ex. 1.3 — Saisie et division sûres',
+        instruction: 'Demandez deux nombres et divisez-les en gérant ValueError et ZeroDivisionError.',
+        starterCode: `try:
+    a = float(input("Premier nombre : "))
+    b = float(input("Deuxième nombre : "))
+    ___
+except ValueError:
+    print("Entrée invalide !")
+except ___:
+    print("Division par zéro impossible !")`,
+        solution: `try:
+    a = float(input("Premier nombre : "))
+    b = float(input("Deuxième nombre : "))
+    print(a / b)
+except ValueError:
+    print("Entrée invalide !")
+except ZeroDivisionError:
+    print("Division par zéro impossible !")`,
+        hints: ['float(input(...)) peut lever ValueError', 'La division par zéro lève ZeroDivisionError'],
+        tests: [
+          { input: '', expected: 'print(a / b)', description: 'La division est effectuée dans le try' },
+          { input: '', expected: 'except ZeroDivisionError', description: 'La division par zéro est capturée' },
+        ],
+        difficulty: 'medium',
+        points: 10,
+      },
+      {
+        id: 'eb2-p4',
+        title: 'Ex. 2.1 — Carrés de 1 à 5',
+        instruction: 'Affichez les carrés des nombres de 1 à 5 avec une boucle for.',
+        starterCode: `# Affichez les carrés de 1 à 5
+___`,
+        solution: `for i in range(1, 6):
+    print(i * i)`,
+        hints: ['range(1, 6) va de 1 à 5 inclus', 'Le carré s\'écrit i * i (ou i ** 2)'],
+        tests: [
+          { input: '', expected: 'for i in range(1, 6)', description: 'La boucle sur 1..5 est présente' },
+          { input: '', expected: 'i * i', description: 'Le carré est calculé' },
+        ],
+        difficulty: 'easy',
+        points: 10,
+      },
+      {
+        id: 'eb2-p5',
+        title: 'Ex. 2.2 — Deviner le nombre',
+        instruction: 'Bouclez jusqu\'à ce que l\'utilisateur devine le nombre secret (1 à 10), avec input() et break.',
+        starterCode: `import random
+
+secret = random.randint(1, 10)
+# Bouclez jusqu'à la bonne réponse
+___`,
+        solution: `import random
+
+secret = random.randint(1, 10)
+while True:
+    essai = int(input("Devinez (1-10) : "))
+    if essai == secret:
+        print("Gagné !")
+        break
+    print("Raté, réessayez !")`,
+        hints: ['while True: avec un break à la victoire', 'Comparez essai == secret'],
+        tests: [
+          { input: '', expected: 'while True', description: 'La boucle while est présente' },
+          { input: '', expected: 'break', description: 'La boucle s\'arrête à la bonne réponse' },
+        ],
+        difficulty: 'medium',
+        points: 10,
+      },
+      {
+        id: 'eb2-p6',
+        title: 'Ex. 2.3 — Somme de 1 à 100',
+        instruction: 'Calculez la somme des entiers de 1 à 100 avec une boucle.',
+        starterCode: `total = 0
+# Ajoutez les entiers de 1 à 100
+___
+print(total)`,
+        solution: `total = 0
+for i in range(1, 101):
+    total += i
+print(total)`,
+        hints: ['range(1, 101) inclut 100', 'total += i accumule'],
+        tests: [
+          { input: '', expected: 'range(1, 101)', description: 'La plage 1..100 est correcte' },
+          { input: '', expected: 'total += i', description: 'Le total est accumulé' },
+        ],
+        difficulty: 'easy',
+        points: 10,
+      },
+    ],
+  },
+  // ========================================================
+  // EXAMEN T22 — S.P. (support Examen-blanc2) : 4 questions, 70/10/10/10
+  // ========================================================
+  {
+    id: 'exam-t22',
+    title: 'Examen T22 — S.P. (60 min)',
+    icon: '📕',
+    level: 'Examen officiel',
+    color: '#e11d48',
+    durationMinutes: 60,
+    passingScore: 70,
+    xpReward: 200,
+    description:
+      'Sujet officiel T22 S.P. : programme de moyennes et admission (70 pts), validation des saisies (10), mentions (10), boucle multi-apprenants (10). Barème : 100 points.',
+    objectives: ['💻 4 questions', 'Barème : 70/10/10/10', 'Seuil de passage : 75 %', 'Seuil examen : 70%'],
+    questions: [],
+    practical: [
+      {
+        id: 't22-q1',
+        title: 'Question 1 (70 pts) — Moyenne et admission',
+        instruction:
+          'Demandez nom, prénom et groupe, puis les notes (%) des 3 modules (réseaux, programmation, sécurité). Calculez la moyenne et affichez si l\'apprenant est admis (seuil 75 %).',
+        starterCode: `nom = input("Nom : ")
+prenom = input("Prénom : ")
+groupe = input("Groupe : ")
+
+reseaux = float(input("Note réseaux (%) : "))
+prog = float(input("Note programmation (%) : "))
+securite = float(input("Note sécurité (%) : "))
+
+# Calculez la moyenne des 3 notes
+moyenne = ___
+
+print(f"Apprenant : {prenom} {nom} — Groupe {groupe}")
+print(f"Moyenne : {moyenne:.2f} %")
+
+# Seuil de passage : 75 %
+if moyenne >= ___:
+    print("Admis")
+else:
+    print("Non admis")`,
+        solution: `nom = input("Nom : ")
+prenom = input("Prénom : ")
+groupe = input("Groupe : ")
+
+reseaux = float(input("Note réseaux (%) : "))
+prog = float(input("Note programmation (%) : "))
+securite = float(input("Note sécurité (%) : "))
+
+moyenne = (reseaux + prog + securite) / 3
+
+print(f"Apprenant : {prenom} {nom} — Groupe {groupe}")
+print(f"Moyenne : {moyenne:.2f} %")
+
+if moyenne >= 75:
+    print("Admis")
+else:
+    print("Non admis")`,
+        hints: [
+          'La moyenne est la somme des 3 notes divisée par 3',
+          'Le seuil de passage est 75',
+          'La f-string {moyenne:.2f} affiche 2 décimales',
+        ],
+        tests: [
+          { input: '', expected: '(reseaux + prog + securite) / 3', description: 'La moyenne des 3 modules est calculée' },
+          { input: '', expected: 'moyenne >= 75', description: 'Le seuil de 75 % est appliqué' },
+        ],
+        difficulty: 'medium',
+        points: 70,
+      },
+      {
+        id: 't22-q2',
+        title: 'Question 2 (10 pts) — Validation des saisies',
+        instruction:
+          'Ajoutez une fonction saisir_note(module) qui redemande tant que la valeur n\'est pas un nombre entre 0 et 100.',
+        starterCode: `def saisir_note(module):
+    while True:
+        note = float(input(f"Note {module} (%) : "))
+        # Validez : la note doit être entre 0 et 100
+        if ___:
+            return note
+        print("Note invalide : entrez une valeur entre 0 et 100.")`,
+        solution: `def saisir_note(module):
+    while True:
+        note = float(input(f"Note {module} (%) : "))
+        if 0 <= note <= 100:
+            return note
+        print("Note invalide : entrez une valeur entre 0 et 100.")`,
+        hints: ['Python autorise les comparaisons chaînées : 0 <= note <= 100', 'La fonction retourne la note dès qu\'elle est valide'],
+        tests: [{ input: '', expected: '0 <= note <= 100', description: 'La plage 0-100 est vérifiée' }],
+        difficulty: 'medium',
+        points: 10,
+      },
+      {
+        id: 't22-q3',
+        title: 'Question 3 (10 pts) — Mentions',
+        instruction:
+          'Créez mention(moyenne) : < 75 % "Non admis", 75 % à 85 % inclus "Admis avec mention", > 85 % "Admis avec mention très bien".',
+        starterCode: `def mention(moyenne):
+    if moyenne < 75:
+        return ___
+    elif moyenne <= 85:
+        return "Admis avec mention"
+    else:
+        return ___`,
+        solution: `def mention(moyenne):
+    if moyenne < 75:
+        return "Non admis"
+    elif moyenne <= 85:
+        return "Admis avec mention"
+    else:
+        return "Admis avec mention très bien"`,
+        hints: ['75 et 85 sont inclus dans "Admis avec mention"', 'Au-delà de 85 : mention très bien'],
+        tests: [
+          { input: '', expected: '"Non admis"', description: 'Le cas sous le seuil est géré' },
+          { input: '', expected: 'très bien', description: 'La mention très bien est retournée' },
+        ],
+        difficulty: 'medium',
+        points: 10,
+      },
+      {
+        id: 't22-q4',
+        title: 'Question 4 (10 pts) — Boucle multi-apprenants',
+        instruction:
+          'Bouclez pour saisir plusieurs apprenants et afficher leur mention. Arrêtez quand l\'utilisateur tape "stop".',
+        starterCode: `def mention(moyenne):
+    if moyenne < 75:
+        return "Non admis"
+    elif moyenne <= 85:
+        return "Admis avec mention"
+    return "Admis avec mention très bien"
+
+while True:
+    nom = input("Nom (ou 'stop' pour arrêter) : ")
+    # Sortez de la boucle si l'utilisateur tape stop
+    if nom.lower() == "___":
+        ___
+    moyenne = float(input("Moyenne (%) : "))
+    print(f"{nom} : {mention(moyenne)}")`,
+        solution: `def mention(moyenne):
+    if moyenne < 75:
+        return "Non admis"
+    elif moyenne <= 85:
+        return "Admis avec mention"
+    return "Admis avec mention très bien"
+
+while True:
+    nom = input("Nom (ou 'stop' pour arrêter) : ")
+    if nom.lower() == "stop":
+        break
+    moyenne = float(input("Moyenne (%) : "))
+    print(f"{nom} : {mention(moyenne)}")`,
+        hints: ['.lower() rend la comparaison insensible à la casse', 'break sort de la boucle while'],
+        tests: [
+          { input: '', expected: '"stop"', description: 'Le mot d\'arrêt est comparé' },
+          { input: '', expected: 'break', description: 'La boucle s\'arrête correctement' },
+        ],
+        difficulty: 'medium',
+        points: 10,
       },
     ],
   },

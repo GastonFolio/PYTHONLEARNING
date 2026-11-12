@@ -1262,6 +1262,187 @@ if __name__ == "__main__":
   ],
 };
 
+// ============================================================
+// TP RÉSEAUX — PARTIE 2 (support docs/TP ... Partie 2, étapes 6 à 10)
+// Concepts : socket, SNMP (pysnmp), requests, rapport fichier, scapy
+// Exécution locale obligatoire (réseau réel) : pip install pysnmp requests scapy
+// ============================================================
+export const tpReseauxProject: StandaloneProject = {
+  id: 'tp-reseaux-2',
+  title: 'TP Réseaux — Partie 2',
+  icon: '🛠️',
+  level: 'Intermédiaire',
+  duration: '~3h',
+  description:
+    'Le TP officiel des techniciens réseaux : scanner des ports, interroger un équipement SNMP, tester une URL HTTP, générer un rapport de connectivité et capturer des paquets avec scapy.',
+  objectives: [
+    'sockets : connect_ex et timeouts',
+    'SNMP avec pysnmp',
+    'requêtes HTTP avec requests',
+    'rapport de statut réseau',
+    'capture de paquets avec scapy',
+  ],
+  steps: [
+    {
+      id: 'tp2-1',
+      title: 'Étape 6 — Surveillance des ports',
+      instruction:
+        'Complétez check_port(ip, port) : le test de connexion TCP renvoie 0 si le port est OUVERT. Utilisez socket.connect_ex (pas connect, qui lève une exception).',
+      hint: 'result = sock.connect_ex((ip, port)) — 0 = ouvert, sinon fermé.',
+      starterCode: `import socket
+
+ip = input("Entrez l'adresse IP du serveur : ")
+ports = [80, 22, 53, 21]  # HTTP, SSH, DNS, FTP
+
+def check_port(ip, port):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(1)  # timeout d'une seconde
+    # Testez la connexion : retourne 0 si le port est ouvert
+    result = sock.___((ip, port))
+    sock.close()
+    return result == 0
+
+for port in ports:
+    if check_port(ip, port):
+        print(f"Le port {port} est ouvert sur l'hôte {ip}.")
+    else:
+        print(f"Le port {port} est fermé sur l'hôte {ip}.")`,
+      expectedCode: `result = sock.connect_ex((ip, port))`,
+      validation: 'connect_ex',
+    },
+    {
+      id: 'tp2-2',
+      title: 'Étape 7 — Interroger un équipement SNMP',
+      instruction:
+        'Complétez la requête SNMP GET avec getCmd (pysnmp) pour récupérer le nom de l\'appareil (OID 1.3.6.1.2.1.1.5.0).',
+      hint: 'iterator = getCmd(SnmpEngine(), CommunityData("public", mpModel=0), UdpTransportTarget((ip, 161)), ContextData(), oid)',
+      starterCode: `from pysnmp.hlapi import *
+
+ip = input("Entrez l'adresse IP de l'appareil SNMP : ")
+oid = ObjectType(ObjectIdentity('1.3.6.1.2.1.1.5.0'))  # sysName
+
+def snmp_get(ip, oid):
+    # Envoyez la requête SNMP GET
+    iterator = ___(
+        SnmpEngine(),
+        CommunityData('public', mpModel=0),
+        UdpTransportTarget((ip, 161)),
+        ContextData(),
+        oid,
+    )
+    errorIndication, errorStatus, errorIndex, varBinds = next(iterator)
+    if errorIndication:
+        print(errorIndication)
+    elif errorStatus:
+        print(f"Erreur : {errorStatus.prettyPrint()}")
+    else:
+        for varBind in varBinds:
+            print(' = '.join([x.prettyPrint() for x in varBind]))
+
+snmp_get(ip, oid)`,
+      expectedCode: `iterator = getCmd(`,
+      validation: 'getCmd',
+    },
+    {
+      id: 'tp2-3',
+      title: 'Étape 8 — Requêtes HTTP',
+      instruction:
+        'Complétez l\'envoi de la requête HTTP GET avec requests.get(url) et gérez le code de statut (200, 404, autre).',
+      hint: 'response = requests.get(url, timeout=3) — puis testez response.status_code.',
+      starterCode: `import requests
+
+url = input("Entrez l'URL du serveur (ex: http://example.com) : ")
+
+try:
+    # Envoyez une requête HTTP GET
+    response = ___
+    if response.status_code == 200:
+        print(f"Le serveur est accessible. Code : {response.status_code}")
+    elif response.status_code == 404:
+        print(f"Page non trouvée. Code : {response.status_code}")
+    else:
+        print(f"Le serveur a répondu avec le code : {response.status_code}")
+except requests.ConnectionError:
+    print("Erreur de connexion au serveur.")`,
+      expectedCode: `response = requests.get(url, timeout=3)`,
+      validation: 'requests.get',
+    },
+    {
+      id: 'tp2-4',
+      title: 'Étape 9 — Rapport de statut réseau',
+      instruction:
+        'Complétez l\'écriture du fichier de rapport avec un bloc with open(...) : pings, vérification des ports et test d\'URL sont déjà prêts.',
+      hint: 'with open(rapport_file, "w", encoding="utf-8") as f:',
+      starterCode: `import os
+import socket
+import requests
+
+ip_list = ["192.168.1.1", "8.8.8.8"]
+ports = [80, 22, 443]
+url = "http://example.com"
+rapport_file = "rapport_reseau.txt"
+
+def ping_hosts(ip_list):
+    result = []
+    for ip in ip_list:
+        response = os.system(f"ping -c 1 {ip}")
+        if response == 0:
+            result.append(f"L'hôte {ip} est accessible.")
+        else:
+            result.append(f"L'hôte {ip} est inaccessible.")
+    return result
+
+def check_ports(ip, ports):
+    result = []
+    for port in ports:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        code = sock.connect_ex((ip, port))
+        sock.close()
+        etat = "ouvert" if code == 0 else "fermé"
+        result.append(f"Le port {port} est {etat} sur l'hôte {ip}.")
+    return result
+
+def check_url(url):
+    try:
+        response = requests.get(url, timeout=3)
+        return f"L'URL {url} a répondu avec le code {response.status_code}."
+    except requests.ConnectionError:
+        return f"L'URL {url} est inaccessible."
+
+# Écrivez le rapport dans le fichier
+___ open(rapport_file, "w", encoding="utf-8") as f:
+    f.write("=== Rapport de Statut Réseau ===\\n\\n")
+    for line in ping_hosts(ip_list):
+        f.write(line + "\\n")
+    for ip in ip_list:
+        for line in check_ports(ip, ports):
+            f.write(line + "\\n")
+    f.write(check_url(url) + "\\n")
+
+print(f"Le rapport a été généré dans {rapport_file}.")`,
+      expectedCode: `with open(rapport_file, "w", encoding="utf-8") as f:`,
+      validation: 'with open',
+    },
+    {
+      id: 'tp2-5',
+      title: 'Étape 10 — Capture de paquets (scapy)',
+      instruction:
+        'Complétez la capture : sniff() doit prendre 10 paquets TCP sur l\'interface, et appeler process_packet pour chacun.',
+      hint: 'sniff(iface="eth0", filter="tcp", prn=process_packet, count=10) — nécessite les droits root/admin.',
+      starterCode: `from scapy.all import sniff
+
+def process_packet(packet):
+    print(packet.summary())
+
+# Capturez 10 paquets TCP sur l'interface eth0
+___(iface="eth0", filter="tcp", prn=process_packet, count=10)`,
+      expectedCode: `sniff(iface="eth0", filter="tcp", prn=process_packet, count=10)`,
+      validation: 'sniff(',
+    },
+  ],
+};
+
 export const standaloneProjects: StandaloneProject[] = [
   hangmanProject,
   morpionProject,
@@ -1271,6 +1452,7 @@ export const standaloneProjects: StandaloneProject[] = [
   subnetProject,
   portScannerProject,
   netMonitorProject,
+  tpReseauxProject,
 ];
 
 export function getStandaloneProject(id: string): StandaloneProject | undefined {

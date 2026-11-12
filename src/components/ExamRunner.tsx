@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { exams } from '../data/verification';
 import { completeExam, loadProgress } from '../data/storage';
-import { ArrowLeft, CheckCircle, XCircle, RotateCcw, Clock, Trophy } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, RotateCcw, Clock, Trophy, Eye, EyeOff } from 'lucide-react';
 import ExercisePanel from './ExercisePanel';
 
 interface ExamRunnerProps {
@@ -10,7 +10,7 @@ interface ExamRunnerProps {
   onProgressUpdate: () => void;
 }
 
-type Phase = 'qcm' | 'pratique' | 'resultat';
+type Phase = 'qcm' | 'theorie' | 'pratique' | 'resultat';
 
 function formatTime(sec: number): string {
   const m = Math.floor(sec / 60);
@@ -21,11 +21,22 @@ function formatTime(sec: number): string {
 export default function ExamRunner({ examId, onNavigate, onProgressUpdate }: ExamRunnerProps) {
   const exam = exams.find(e => e.id === examId);
 
-  const [phase, setPhase] = useState<Phase>('qcm');
+  const [phase, setPhase] = useState<Phase>(() => {
+    if (!exam) return 'qcm';
+    if (exam.questions.length > 0) return 'qcm';
+    if (exam.theory && exam.theory.length > 0) return 'theorie';
+    return 'pratique';
+  });
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(() => (exam ? new Array(exam.questions.length).fill(null) : []));
   const [showResult, setShowResult] = useState(false);
   const [timeLeft, setTimeLeft] = useState(() => (exam ? exam.durationMinutes * 60 : 0));
+
+  // --- Théorie : réponse libre + auto-évaluation ---
+  const [theoryText, setTheoryText] = useState<string[]>(() => (exam?.theory ? exam.theory.map(() => '') : []));
+  const [theoryRevealed, setTheoryRevealed] = useState<boolean[]>(() => (exam?.theory ? exam.theory.map(() => false) : []));
+  const [theoryAssess, setTheoryAssess] = useState<(number | null)[]>(() => (exam?.theory ? exam.theory.map(() => null) : []));
+
   const [pratiqueDone, setPratiqueDone] = useState<boolean[]>(() => (exam ? exam.practical.map(p => {
     try {
       return (loadProgress().completedExercises || []).includes(p.id);
@@ -39,7 +50,7 @@ export default function ExamRunner({ examId, onNavigate, onProgressUpdate }: Exa
   useEffect(() => {
     if (phase !== 'qcm' || !exam) return;
     if (timeLeft <= 0) {
-      finishQcm();
+      goNextPhaseFromQcm();
       return;
     }
     const t = setTimeout(() => setTimeLeft(s => s - 1), 1000);
@@ -55,6 +66,7 @@ export default function ExamRunner({ examId, onNavigate, onProgressUpdate }: Exa
     );
   }
 
+  const usesPoints = !!exam.theory || exam.practical.some(p => p.points !== undefined);
   const question = exam.questions[currentQ];
 
   const handleAnswer = (index: number) => {
@@ -65,19 +77,21 @@ export default function ExamRunner({ examId, onNavigate, onProgressUpdate }: Exa
     setShowResult(true);
   };
 
+  function goNextPhaseFromQcm() {
+    if (exam!.theory && exam!.theory.length > 0) setPhase('theorie');
+    else setPhase('pratique');
+    setShowResult(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   const handleNext = () => {
     if (currentQ < exam.questions.length - 1) {
       setCurrentQ(c => c + 1);
       setShowResult(false);
     } else {
-      finishQcm();
+      goNextPhaseFromQcm();
     }
   };
-
-  function finishQcm() {
-    setPhase('pratique');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
 
   const handlePratiqueComplete = (i: number) => {
     setPratiqueDone(prev => {
@@ -88,13 +102,31 @@ export default function ExamRunner({ examId, onNavigate, onProgressUpdate }: Exa
     onProgressUpdate();
   };
 
+  const assessTheory = (i: number, value: number) => {
+    setTheoryAssess(prev => {
+      const next = [...prev];
+      next[i] = value;
+      return next;
+    });
+  };
+
   const finishExam = () => {
-    const qcmGood = answers.filter((a, i) => a === exam.questions[i].correctIndex).length;
-    const qcmPct = Math.round((qcmGood / exam.questions.length) * 100);
-    const pratPct = exam.practical.length > 0
-      ? Math.round((pratiqueDone.filter(Boolean).length / exam.practical.length) * 100)
-      : 100;
-    const score = Math.round(qcmPct * 0.6 + pratPct * 0.4);
+    let score: number;
+    if (usesPoints) {
+      const theoryTotal = exam.theory?.reduce((a, t) => a + t.points, 0) ?? 0;
+      const theoryEarned = exam.theory?.reduce((a, t, i) => a + t.points * (theoryAssess[i] ?? 0), 0) ?? 0;
+      const pratTotal = exam.practical.reduce((a, p) => a + (p.points ?? 10), 0);
+      const pratEarned = exam.practical.reduce((a, p, i) => a + (pratiqueDone[i] ? (p.points ?? 10) : 0), 0);
+      const max = theoryTotal + pratTotal;
+      score = max > 0 ? Math.round(((theoryEarned + pratEarned) / max) * 100) : 0;
+    } else {
+      const qcmGood = answers.filter((a, i) => a === exam.questions[i].correctIndex).length;
+      const qcmPct = exam.questions.length > 0 ? Math.round((qcmGood / exam.questions.length) * 100) : 0;
+      const pratPct = exam.practical.length > 0
+        ? Math.round((pratiqueDone.filter(Boolean).length / exam.practical.length) * 100)
+        : 100;
+      score = Math.round(qcmPct * 0.6 + pratPct * 0.4);
+    }
     setFinalScore(score);
     completeExam(exam.id, score, exam.xpReward, exam.passingScore);
     onProgressUpdate();
@@ -103,11 +135,14 @@ export default function ExamRunner({ examId, onNavigate, onProgressUpdate }: Exa
   };
 
   const restart = () => {
-    setPhase('qcm');
+    setPhase(exam.questions.length > 0 ? 'qcm' : exam.theory && exam.theory.length > 0 ? 'theorie' : 'pratique');
     setCurrentQ(0);
     setAnswers(new Array(exam.questions.length).fill(null));
     setShowResult(false);
     setTimeLeft(exam.durationMinutes * 60);
+    setTheoryText(exam.theory ? exam.theory.map(() => '') : []);
+    setTheoryRevealed(exam.theory ? exam.theory.map(() => false) : []);
+    setTheoryAssess(exam.theory ? exam.theory.map(() => null) : []);
     setFinalScore(null);
   };
 
@@ -115,6 +150,11 @@ export default function ExamRunner({ examId, onNavigate, onProgressUpdate }: Exa
   if (phase === 'resultat' && finalScore !== null) {
     const passed = finalScore >= exam.passingScore;
     const qcmGood = answers.filter((a, i) => a === exam.questions[i].correctIndex).length;
+    const theoryEarned = exam.theory?.reduce((a, t, i) => a + t.points * (theoryAssess[i] ?? 0), 0) ?? 0;
+    const theoryTotal = exam.theory?.reduce((a, t) => a + t.points, 0) ?? 0;
+    const pratTotal = exam.practical.reduce((a, p) => a + (p.points ?? 10), 0);
+    const pratEarned = exam.practical.reduce((a, p, i) => a + (pratiqueDone[i] ? (p.points ?? 10) : 0), 0);
+
     return (
       <div className="min-h-screen pt-24 pb-16">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
@@ -141,42 +181,72 @@ export default function ExamRunner({ examId, onNavigate, onProgressUpdate }: Exa
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-8 text-sm">
+              {exam.questions.length > 0 && (
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                  <div className="text-gray-400">QCM</div>
+                  <div className="text-white font-bold">{qcmGood}/{exam.questions.length}</div>
+                </div>
+              )}
+              {theoryTotal > 0 && (
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                  <div className="text-gray-400">Théorie</div>
+                  <div className="text-white font-bold">{theoryEarned}/{theoryTotal} pts</div>
+                </div>
+              )}
               <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                <div className="text-gray-400">QCM (60%)</div>
-                <div className="text-white font-bold">{qcmGood}/{exam.questions.length}</div>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                <div className="text-gray-400">Pratique (40%)</div>
-                <div className="text-white font-bold">{pratiqueDone.filter(Boolean).length}/{exam.practical.length}</div>
+                <div className="text-gray-400">Pratique</div>
+                <div className="text-white font-bold">{pratEarned}/{pratTotal} pts</div>
               </div>
             </div>
 
             <p className="text-gray-300 mb-8">
               {passed
                 ? `🎉 Bravo ! +${exam.xpReward} XP (première réussite).`
-                : '💪 Relisez les explications ci-dessous, entraînez-vous en Intensif, puis retentez.'}
+                : '💪 Relisez les corrections ci-dessous, entraînez-vous en Intensif, puis retentez.'}
             </p>
 
+            {/* Revue théorie */}
+            {exam.theory && exam.theory.length > 0 && (
+              <div className="text-left space-y-3 mb-8">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400">✍️ Corrigé théorique</h3>
+                {exam.theory.map((t, i) => {
+                  const earned = t.points * (theoryAssess[i] ?? 0);
+                  return (
+                    <div key={t.id} className={`p-4 rounded-xl border ${earned >= t.points ? 'border-green-500/30 bg-green-500/5' : earned > 0 ? 'border-orange-500/30 bg-orange-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
+                      <p className="text-sm text-white font-medium">Q{i + 1}. {t.question}</p>
+                      <p className="text-xs text-gray-400 mt-1">Note : {earned}/{t.points} pts</p>
+                      {theoryText[i] && (
+                        <p className="text-xs text-gray-500 mt-2 whitespace-pre-wrap"><strong className="text-gray-400">Votre réponse :</strong> {theoryText[i]}</p>
+                      )}
+                      <p className="text-xs text-gray-300 mt-2 whitespace-pre-wrap"><strong className="text-green-400">Corrigé :</strong> {t.modelAnswer}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Revue QCM */}
-            <div className="text-left space-y-3 mb-8">
-              {exam.questions.map((q, i) => {
-                const ok = answers[i] === q.correctIndex;
-                return (
-                  <div key={q.id} className={`p-4 rounded-xl border ${ok ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
-                    <div className="flex items-start gap-3">
-                      {ok ? <CheckCircle size={18} className="text-green-400 mt-0.5 flex-shrink-0" /> : <XCircle size={18} className="text-red-400 mt-0.5 flex-shrink-0" />}
-                      <div>
-                        <p className="text-sm text-white font-medium">Q{i + 1}. {q.question}</p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {answers[i] === null ? '⏱ Sans réponse (temps écoulé). ' : ''}
-                          Bonne réponse : {q.options[q.correctIndex]} — {q.explanation}
-                        </p>
+            {exam.questions.length > 0 && (
+              <div className="text-left space-y-3 mb-8">
+                {exam.questions.map((q, i) => {
+                  const ok = answers[i] === q.correctIndex;
+                  return (
+                    <div key={q.id} className={`p-4 rounded-xl border ${ok ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'}`}>
+                      <div className="flex items-start gap-3">
+                        {ok ? <CheckCircle size={18} className="text-green-400 mt-0.5 flex-shrink-0" /> : <XCircle size={18} className="text-red-400 mt-0.5 flex-shrink-0" />}
+                        <div>
+                          <p className="text-sm text-white font-medium">Q{i + 1}. {q.question}</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {answers[i] === null ? '⏱ Sans réponse (temps écoulé). ' : ''}
+                            Bonne réponse : {q.options[q.correctIndex]} — {q.explanation}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
@@ -198,8 +268,9 @@ export default function ExamRunner({ examId, onNavigate, onProgressUpdate }: Exa
     );
   }
 
-  // ---------- PRATIQUE ----------
-  if (phase === 'pratique') {
+  // ---------- THÉORIE ----------
+  if (phase === 'theorie' && exam.theory) {
+    const assessedCount = theoryAssess.filter(a => a !== null).length;
     return (
       <div className="min-h-screen pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
@@ -207,18 +278,121 @@ export default function ExamRunner({ examId, onNavigate, onProgressUpdate }: Exa
             onClick={() => onNavigate('verification')}
             className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
           >
-            <ArrowLeft size={18} /> Abandonner (le QCM sera perdu)
+            <ArrowLeft size={18} /> Abandonner
           </button>
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">💻 Épreuves pratiques <span className="text-gray-500 text-lg">(40%)</span></h1>
-            <p className="text-gray-400 text-sm">Validez chaque exercice, puis cliquez sur « Voir mon résultat ».</p>
+            <h1 className="text-3xl font-bold text-white mb-2">✍️ Questions théoriques</h1>
+            <p className="text-gray-400 text-sm">
+              Rédigez votre réponse, affichez le corrigé, puis évaluez-vous honnêtement.
+              Barème : {exam.theory.reduce((a, t) => a + t.points, 0)} points.
+            </p>
+          </div>
+
+          <div className="space-y-5">
+            {exam.theory.map((t, i) => (
+              <div key={t.id} className="glass rounded-2xl p-6">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <h2 className="text-base font-bold text-white">
+                    <span className="text-python-yellow">Q{i + 1}.</span> {t.question}
+                  </h2>
+                  <span className="text-xs font-bold px-2 py-1 rounded-full bg-white/10 text-gray-300 flex-shrink-0">
+                    {t.points} pts
+                  </span>
+                </div>
+                <textarea
+                  value={theoryText[i]}
+                  onChange={e => {
+                    const next = [...theoryText];
+                    next[i] = e.target.value;
+                    setTheoryText(next);
+                  }}
+                  rows={4}
+                  placeholder="Rédigez votre réponse ici (brouillon conservé pendant la session)..."
+                  className="w-full rounded-xl bg-black/30 border border-white/15 p-3 text-sm text-gray-200 placeholder:text-gray-600 focus:outline-none focus:border-python-blue resize-y font-mono"
+                />
+                <button
+                  onClick={() => {
+                    const next = [...theoryRevealed];
+                    next[i] = !next[i];
+                    setTheoryRevealed(next);
+                  }}
+                  className="mt-3 flex items-center gap-2 text-sm font-semibold text-purple-400 hover:text-purple-300"
+                >
+                  {theoryRevealed[i] ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {theoryRevealed[i] ? 'Masquer le corrigé' : 'Voir le corrigé'}
+                </button>
+
+                {theoryRevealed[i] && (
+                  <div className="mt-3 p-4 rounded-xl bg-purple-500/10 border border-purple-500/25 animate-fade-in">
+                    <p className="text-sm text-gray-200 whitespace-pre-wrap">{t.modelAnswer}</p>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {t.keyPoints.map(k => (
+                        <span key={k} className="text-xs px-2 py-1 rounded bg-white/5 text-gray-400 border border-white/10">
+                          ✓ {k}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-xs font-bold text-gray-400 mt-4 mb-2">Auto-évaluation :</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { v: 1, label: `Acquis (${t.points})`, cls: 'border-green-500/40 text-green-400 hover:bg-green-500/15' },
+                        { v: 0.5, label: `Partiel (${t.points / 2})`, cls: 'border-orange-500/40 text-orange-400 hover:bg-orange-500/15' },
+                        { v: 0, label: 'À revoir (0)', cls: 'border-red-500/40 text-red-400 hover:bg-red-500/15' },
+                      ].map(o => (
+                        <button
+                          key={o.v}
+                          onClick={() => assessTheory(i, o.v)}
+                          className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-colors ${o.cls} ${theoryAssess[i] === o.v ? 'bg-white/10 ring-1 ring-white/30' : ''}`}
+                        >
+                          {theoryAssess[i] === o.v ? '✓ ' : ''}{o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={() => { setPhase('pratique'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            disabled={assessedCount < exam.theory.length}
+            className="w-full mt-6 py-4 rounded-xl bg-gradient-to-r from-python-blue to-python-blue/80 text-white font-bold text-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {assessedCount < exam.theory.length
+              ? `Auto-évaluez toutes les questions (${assessedCount}/${exam.theory.length})`
+              : 'Passer aux épreuves pratiques 💻'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- PRATIQUE ----------
+  if (phase === 'pratique') {
+    const totalPrat = exam.practical.reduce((a, p) => a + (p.points ?? 10), 0);
+    const earnedPrat = exam.practical.reduce((a, p, i) => a + (pratiqueDone[i] ? (p.points ?? 10) : 0), 0);
+    return (
+      <div className="min-h-screen pt-24 pb-16">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <button
+            onClick={() => onNavigate('verification')}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
+          >
+            <ArrowLeft size={18} /> Quitter l'examen
+          </button>
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">💻 Épreuves pratiques</h1>
+            <p className="text-gray-400 text-sm">
+              Validez chaque exercice. Points acquis : {earnedPrat}/{totalPrat}.
+            </p>
           </div>
           <div className="space-y-6">
             {exam.practical.map((ex, i) => (
               <div key={ex.id}>
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`text-xs font-bold px-2 py-1 rounded-full ${pratiqueDone[i] ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-gray-300'}`}>
-                    Épreuve {i + 1}/{exam.practical.length} {pratiqueDone[i] ? '✓' : ''}
+                    {ex.points ?? 10} pts {pratiqueDone[i] ? '✓' : ''}
                   </span>
                 </div>
                 <ExercisePanel exercise={ex} onComplete={() => handlePratiqueComplete(i)} />
@@ -229,7 +403,7 @@ export default function ExamRunner({ examId, onNavigate, onProgressUpdate }: Exa
             onClick={finishExam}
             className="w-full mt-8 py-4 rounded-xl bg-gradient-to-r from-purple-600 to-python-blue text-white font-bold text-lg hover:shadow-lg transition-all"
           >
-            Voir mon résultat 🏆 ({pratiqueDone.filter(Boolean).length}/{exam.practical.length} pratiques validées)
+            Voir mon résultat 🏆 ({pratiqueDone.filter(Boolean).length}/{exam.practical.length} exercices validés)
           </button>
         </div>
       </div>
@@ -314,7 +488,11 @@ export default function ExamRunner({ examId, onNavigate, onProgressUpdate }: Exa
               onClick={handleNext}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-python-blue to-python-blue/80 text-white font-bold hover:shadow-lg transition-all animate-fade-in"
             >
-              {currentQ < exam.questions.length - 1 ? 'Question suivante →' : 'Passer aux épreuves pratiques 💻'}
+              {currentQ < exam.questions.length - 1
+                ? 'Question suivante →'
+                : exam.theory && exam.theory.length > 0
+                  ? 'Passer à la théorie ✍️'
+                  : 'Passer aux épreuves pratiques 💻'}
             </button>
           )}
         </div>
